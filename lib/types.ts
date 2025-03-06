@@ -17,34 +17,38 @@ export interface Client {
   budget: number;
 }
 
-export type ProjectStatus = 'pending' | 'ongoing' | 'completed' | 'rejected';
+export type ProjectStatus = 'pending' | 'in-progress' | 'completed' | 'rejected' | 'delayed';
 
-export interface Project {
+
+export type Project = {
   id: string;
   name: string;
-  client: Client;
-  overview: string;
-  developerGuide: string;
+  clientName: string;
+  clientEmail: string;
   estimatedCost: number;
+  finalCost?: number;
   status: ProjectStatus;
   deadline?: string;
-  submittedAt: string;
   progress: number;
+  submittedAt: string;
   rejectionReason?: string;
-  tasks?: Task[];
-  assignedTo?: string[];
-}
+  description: string;
+  overviewPdf?: string;
+  developerPdf?: string;
+};
 
 export type TaskStatus = 'not-started' | 'in-progress' | 'completed';
 
-export interface Task {
+
+export type Task = {
   id: string;
-  projectId: string;
   name: string;
-  status: TaskStatus;
+  projectId: string;
+  projectName: string;
+  status: 'not-started' | 'in-progress' | 'completed';
   deadline: string;
   priority: 'low' | 'medium' | 'high';
-}
+};
 
 export interface TeamMember {
   id: string;

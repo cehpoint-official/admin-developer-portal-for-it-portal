@@ -1,6 +1,6 @@
 import { User } from "@/lib/types";
-import SideBar from "./SideBar";
 import Header from "./Header";
+import SideBar from "./Sidebar";
 
 interface LayoutProps {
   user: User;
@@ -11,7 +11,7 @@ interface LayoutProps {
 const Layout = ({ user, title, description, children }: LayoutProps) => {
   return (
     <div className="flex h-screen overflow-hidden">
-      <div className="hidden md:block md:w-64">
+      <div className="hidden md:block ">
         <SideBar
           role={user.role}
           userName={user.name}

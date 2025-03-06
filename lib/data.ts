@@ -28,197 +28,215 @@ export const users: User[] = [
 ];
 
 // Mock Projects
-export const projects: Project[] = [
+export const mockProjects: Project[] = [
   {
-    id: 'project-1',
+    id: '1',
     name: 'E-commerce Website Redesign',
-    client: {
-      id: 'client-1',
-      name: 'Alex Johnson',
-      email: 'alex@company.com',
-      phone: '555-123-4567',
-      company: 'Fashion Forward',
-      budget: 15000,
-    },
-    overview: 'Overview PDF link',
-    developerGuide: 'Developer Guide PDF link',
-    estimatedCost: 12000,
-    status: 'pending',
-    submittedAt: formatDate(subDays(today, 2)),
-    progress: 0,
-  },
-  {
-    id: 'project-2',
-    name: 'Mobile App Development',
-    client: {
-      id: 'client-2',
-      name: 'Maria Garcia',
-      email: 'maria@techstart.com',
-      phone: '555-987-6543',
-      company: 'TechStart',
-      budget: 25000,
-    },
-    overview: 'Overview PDF link',
-    developerGuide: 'Developer Guide PDF link',
-    estimatedCost: 22000,
-    status: 'ongoing',
-    deadline: formatDate(addDays(today, 30)),
-    submittedAt: formatDate(subDays(today, 15)),
-    progress: 35,
-    assignedTo: ['user-2'],
-    tasks: [
-      {
-        id: 'task-1',
-        projectId: 'project-2',
-        name: 'UI Design',
-        status: 'completed',
-        deadline: formatDate(addDays(today, 5)),
-        priority: 'high',
-      },
-      {
-        id: 'task-2',
-        projectId: 'project-2',
-        name: 'Frontend Development',
-        status: 'in-progress',
-        deadline: formatDate(addDays(today, 15)),
-        priority: 'high',
-      },
-      {
-        id: 'task-3',
-        projectId: 'project-2',
-        name: 'Backend Integration',
-        status: 'not-started',
-        deadline: formatDate(addDays(today, 25)),
-        priority: 'medium',
-      },
-    ],
-  },
-  {
-    id: 'project-3',
-    name: 'Corporate Website',
-    client: {
-      id: 'client-3',
-      name: 'Robert Smith',
-      email: 'robert@megacorp.com',
-      phone: '555-555-5555',
-      company: 'MegaCorp',
-      budget: 18000,
-    },
-    overview: 'Overview PDF link',
-    developerGuide: 'Developer Guide PDF link',
-    estimatedCost: 16500,
-    status: 'completed',
-    deadline: formatDate(subDays(today, 10)),
-    submittedAt: formatDate(subDays(today, 60)),
-    progress: 100,
-  },
-  {
-    id: 'project-4',
-    name: 'Social Media Dashboard',
-    client: {
-      id: 'client-4',
-      name: 'Jennifer Lee',
-      email: 'jennifer@socialco.com',
-      phone: '555-222-3333',
-      company: 'SocialCo',
-      budget: 9000,
-    },
-    overview: 'Overview PDF link',
-    developerGuide: 'Developer Guide PDF link',
+    clientName: 'John Smith',
+    clientEmail: 'john@example.com',
     estimatedCost: 8500,
-    status: 'rejected',
-    submittedAt: formatDate(subDays(today, 5)),
-    progress: 0,
-    rejectionReason: 'Budget constraints and timeline issues',
-  },
-  {
-    id: 'project-5',
-    name: 'Healthcare Portal',
-    client: {
-      id: 'client-5',
-      name: 'David Wilson',
-      email: 'david@healthplus.com',
-      phone: '555-444-7777',
-      company: 'HealthPlus',
-      budget: 30000,
-    },
-    overview: 'Overview PDF link',
-    developerGuide: 'Developer Guide PDF link',
-    estimatedCost: 28000,
-    status: 'ongoing',
-    deadline: formatDate(addDays(today, 45)),
-    submittedAt: formatDate(subDays(today, 20)),
-    progress: 15,
-    assignedTo: ['user-2'],
-    tasks: [
-      {
-        id: 'task-4',
-        projectId: 'project-5',
-        name: 'Requirements Analysis',
-        status: 'completed',
-        deadline: formatDate(subDays(today, 10)),
-        priority: 'high',
-      },
-      {
-        id: 'task-5',
-        projectId: 'project-5',
-        name: 'Database Design',
-        status: 'in-progress',
-        deadline: formatDate(addDays(today, 5)),
-        priority: 'high',
-      },
-      {
-        id: 'task-6',
-        projectId: 'project-5',
-        name: 'Frontend Development',
-        status: 'not-started',
-        deadline: formatDate(addDays(today, 25)),
-        priority: 'medium',
-      },
-      {
-        id: 'task-7',
-        projectId: 'project-5',
-        name: 'Testing',
-        status: 'not-started',
-        deadline: formatDate(addDays(today, 40)),
-        priority: 'medium',
-      },
-    ],
-  },
-  {
-    id: 'project-6',
-    name: 'Restaurant Ordering System',
-    client: {
-      id: 'client-6',
-      name: 'Michael Brown',
-      email: 'michael@tastybites.com',
-      phone: '555-888-9999',
-      company: 'Tasty Bites',
-      budget: 12000,
-    },
-    overview: 'Overview PDF link',
-    developerGuide: 'Developer Guide PDF link',
-    estimatedCost: 11000,
     status: 'pending',
-    submittedAt: formatDate(subDays(today, 1)),
     progress: 0,
+    submittedAt: '2023-09-01T10:00:00',
+    description: 'Complete redesign of an existing e-commerce platform with modern UI/UX improvements.',
+    overviewPdf: 'ecommerce_overview.pdf',
+    developerPdf: 'ecommerce_dev_guide.pdf',
+  },
+  {
+    id: '2',
+    name: 'Mobile Banking App',
+    clientName: 'Sarah Johnson',
+    clientEmail: 'sarah@bank.com',
+    estimatedCost: 12000,
+    status: 'in-progress',
+    deadline: '2023-11-15T00:00:00',
+    progress: 35,
+    submittedAt: '2023-08-15T14:30:00',
+    description: 'Secure mobile banking application with biometric authentication and real-time transaction processing.',
+    overviewPdf: 'banking_overview.pdf',
+    developerPdf: 'banking_dev_guide.pdf',
+  },
+  {
+    id: '3',
+    name: 'Healthcare Management System',
+    clientName: 'Michael Williams',
+    clientEmail: 'michael@healthcare.org',
+    estimatedCost: 15000,
+    status: 'in-progress',
+    deadline: '2023-12-01T00:00:00',
+    progress: 65,
+    submittedAt: '2023-07-20T09:15:00',
+    description: 'Comprehensive healthcare management system for patient records, appointments, and billing.',
+    overviewPdf: 'healthcare_overview.pdf',
+    developerPdf: 'healthcare_dev_guide.pdf',
+  },
+  {
+    id: '4',
+    name: 'Fitness Tracking App',
+    clientName: 'Emily Davis',
+    clientEmail: 'emily@fitness.co',
+    estimatedCost: 7800,
+    status: 'completed',
+    deadline: '2023-08-30T00:00:00',
+    progress: 100,
+    submittedAt: '2023-06-10T16:45:00',
+    description: 'Mobile application for tracking workouts, nutrition, and fitness goals with social sharing features.',
+    overviewPdf: 'fitness_overview.pdf',
+    developerPdf: 'fitness_dev_guide.pdf',
+  },
+  {
+    id: '5',
+    name: 'Real Estate Listing Platform',
+    clientName: 'Robert Brown',
+    clientEmail: 'robert@realty.com',
+    estimatedCost: 9200,
+    status: 'rejected',
+    progress: 0,
+    submittedAt: '2023-09-05T11:20:00',
+    rejectionReason: 'Budget constraints and timeline issues',
+    description: 'Online platform for real estate listings with virtual tours and property management features.',
+    overviewPdf: 'realestate_overview.pdf',
+    developerPdf: 'realestate_dev_guide.pdf',
+  },
+  {
+    id: '6',
+    name: 'Educational Course Platform',
+    clientName: 'Jennifer Wilson',
+    clientEmail: 'jennifer@edu.org',
+    estimatedCost: 10500,
+    status: 'in-progress',
+    deadline: '2023-11-30T00:00:00',
+    progress: 45,
+    submittedAt: '2023-08-22T13:10:00',
+    description: 'Online learning platform with video courses, quizzes, and certification tracking.',
+    overviewPdf: 'education_overview.pdf',
+    developerPdf: 'education_dev_guide.pdf',
+  },
+  {
+    id: '7',
+    name: 'Restaurant Ordering System',
+    clientName: 'David Martinez',
+    clientEmail: 'david@restaurant.com',
+    estimatedCost: 6500,
+    status: 'completed',
+    deadline: '2023-09-15T00:00:00',
+    progress: 100,
+    submittedAt: '2023-07-05T10:30:00',
+    description: 'Digital ordering system for restaurants with kitchen management and delivery tracking.',
+    overviewPdf: 'restaurant_overview.pdf',
+    developerPdf: 'restaurant_dev_guide.pdf',
+  },
+  {
+    id: '8',
+    name: 'Event Management Portal',
+    clientName: 'Lisa Taylor',
+    clientEmail: 'lisa@events.co',
+    estimatedCost: 11000,
+    status: 'delayed',
+    deadline: '2023-10-10T00:00:00',
+    progress: 70,
+    submittedAt: '2023-06-25T09:40:00',
+    description: 'Comprehensive event management system for planning, ticketing, and attendee management.',
+    overviewPdf: 'event_overview.pdf',
+    developerPdf: 'event_dev_guide.pdf',
   },
 ];
 
+
 // Mock Tasks (additional tasks not tied to specific projects)
-export const tasks: Task[] = [
-  ...projects
-    .filter(project => project.tasks)
-    .flatMap(project => project.tasks || []),
+export const mockTasks: Task[] = [
   {
-    id: 'task-8',
-    projectId: 'project-3',
-    name: 'Documentation',
+    id: '1',
+    name: 'Design Database Schema',
+    projectId: '2',
+    projectName: 'Mobile Banking App',
     status: 'completed',
-    deadline: formatDate(subDays(today, 15)),
-    priority: 'low',
+    deadline: '2023-08-25T00:00:00',
+    priority: 'high',
+  },
+  {
+    id: '2',
+    name: 'Implement User Authentication',
+    projectId: '2',
+    projectName: 'Mobile Banking App',
+    status: 'in-progress',
+    deadline: '2023-09-10T00:00:00',
+    priority: 'high',
+  },
+  {
+    id: '3',
+    name: 'Create Transaction API',
+    projectId: '2',
+    projectName: 'Mobile Banking App',
+    status: 'not-started',
+    deadline: '2023-09-25T00:00:00',
+    priority: 'medium',
+  },
+  {
+    id: '4',
+    name: 'Design Patient Dashboard',
+    projectId: '3',
+    projectName: 'Healthcare Management System',
+    status: 'completed',
+    deadline: '2023-08-15T00:00:00',
+    priority: 'medium',
+  },
+  {
+    id: '5',
+    name: 'Implement Appointment Scheduling',
+    projectId: '3',
+    projectName: 'Healthcare Management System',
+    status: 'completed',
+    deadline: '2023-09-01T00:00:00',
+    priority: 'high',
+  },
+  {
+    id: '6',
+    name: 'Develop Billing Module',
+    projectId: '3',
+    projectName: 'Healthcare Management System',
+    status: 'in-progress',
+    deadline: '2023-10-15T00:00:00',
+    priority: 'medium',
+  },
+  {
+    id: '7',
+    name: 'Integrate Electronic Health Records',
+    projectId: '3',
+    projectName: 'Healthcare Management System',
+    status: 'not-started',
+    deadline: '2023-11-01T00:00:00',
+    priority: 'high',
+  },
+  {
+    id: '8',
+    name: 'Design Course Listing UI',
+    projectId: '6',
+    projectName: 'Educational Course Platform',
+    status: 'completed',
+    deadline: '2023-09-05T00:00:00',
+    priority: 'medium',
+  },
+  {
+    id: '9',
+    name: 'Implement Video Streaming',
+    projectId: '6',
+    projectName: 'Educational Course Platform',
+    status: 'in-progress',
+    deadline: '2023-10-10T00:00:00',
+    priority: 'high',
+  },
+  {
+    id: '10',
+    name: 'Develop Quiz Module',
+    projectId: '6',
+    projectName: 'Educational Course Platform',
+    status: 'not-started',
+    deadline: '2023-10-25T00:00:00',
+    priority: 'medium',
   },
 ];
+
 
 // Mock Team Members
 export const teamMembers: TeamMember[] = [
@@ -300,42 +318,48 @@ export const messages: Message[] = [
   },
 ];
 
-// Helper functions to get filtered data
-export const getPendingProjects = () => projects.filter(project => project.status === 'pending');
-export const getOngoingProjects = () => projects.filter(project => project.status === 'ongoing');
-export const getCompletedProjects = () => projects.filter(project => project.status === 'completed');
-export const getRejectedProjects = () => projects.filter(project => project.status === 'rejected');
+export const getPendingProjects = () => 
+  mockProjects.filter(project => project.status === 'pending');
 
-export const getProjectById = (id: string) => projects.find(project => project.id === id);
-export const getTasksByProjectId = (projectId: string) => tasks.filter(task => task.projectId === projectId);
-export const getTasksByDeveloper = (developerId: string) => {
-  const developerProjects = projects.filter(project => 
-    project.assignedTo?.includes(developerId)
-  ).map(project => project.id);
+export const getOngoingProjects = () => 
+  mockProjects.filter(project => project.status === 'in-progress' || project.status === 'delayed');
+
+export const getCompletedProjects = () => 
+  mockProjects.filter(project => project.status === 'completed');
+
+export const getRejectedProjects = () => 
+  mockProjects.filter(project => project.status === 'rejected');
+
+// export const getProjectById = (id: string) => projects.find(project => project.id === id);
+// export const getTasksByProjectId = (projectId: string) => tasks.filter(task => task.projectId === projectId);
+// export const getTasksByDeveloper = (developerId: string) => {
+//   const developerProjects = projects.filter(project => 
+//     project.assignedTo?.includes(developerId)
+//   ).map(project => project.id);
   
-  return tasks.filter(task => 
-    developerProjects.includes(task.projectId)
-  );
-};
+//   return tasks.filter(task => 
+//     developerProjects.includes(task.projectId)
+//   );
+// };
 
-export const getUpcomingDeadlines = () => {
-  const sevenDaysFromNow = addDays(today, 7);
-  return projects.filter(project => 
-    project.status === 'ongoing' && 
-    project.deadline && 
-    new Date(project.deadline) <= sevenDaysFromNow
-  );
-};
+// export const getUpcomingDeadlines = () => {
+//   const sevenDaysFromNow = addDays(today, 7);
+//   return projects.filter(project => 
+//     project.status === 'ongoing' && 
+//     project.deadline && 
+//     new Date(project.deadline) <= sevenDaysFromNow
+//   );
+// };
 
-export const getTotalRevenue = () => {
-  return projects
-    .filter(project => project.status === 'ongoing' || project.status === 'completed')
-    .reduce((total, project) => total + project.estimatedCost, 0);
-};
+// export const getTotalRevenue = () => {
+//   return projects
+//     .filter(project => project.status === 'ongoing' || project.status === 'completed')
+//     .reduce((total, project) => total + project.estimatedCost, 0);
+// };
 
-export const getRecentRequests = (count = 5) => {
-  return [...projects]
-    .filter(project => project.status === 'pending')
-    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
-    .slice(0, count);
-};
+// export const getRecentRequests = (count = 5) => {
+//   return [...projects]
+//     .filter(project => project.status === 'pending')
+//     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+//     .slice(0, count);
+// };
