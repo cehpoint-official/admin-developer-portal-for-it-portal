@@ -190,7 +190,7 @@ export default function DeveloperDashboard() {
                         <h3 className="font-medium">{project.name}</h3>
                         <div className="flex items-center text-sm text-muted-foreground mt-1">
                           <Calendar className="h-3.5 w-3.5 mr-1" /> Due:{" "}
-                          {new Date(project.deadline).toLocaleDateString()}
+                          {project.deadline}
                         </div>
                       </div>
                       <Badge

@@ -114,7 +114,7 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
             <div className="rounded-md bg-primary p-1">
               <Home className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold">
+            <h1 className=" font-bold">
               {role === "admin" ? "Admin" : "Developer"} Portal
             </h1>
           </Link>

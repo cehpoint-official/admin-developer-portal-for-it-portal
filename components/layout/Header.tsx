@@ -3,6 +3,7 @@
 import { Bell, User, Home } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
+import Link from "next/link";
 interface DashboardHeaderProps {
   title: string;
   description?: string;
@@ -40,16 +41,13 @@ const Header = ({ title, description }: DashboardHeaderProps) => {
         >
           <User className="h-5 w-5" />
         </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-2"
-          /// onClick={() => navigate("/")}
-        >
-          <Home className="h-4 w-4 mr-2" />
-          Home
-        </Button>
+        <Link href={"/"}>
+          {" "}
+          <Button variant="outline" size="sm" className="ml-2">
+            <Home className="h-4 w-4 mr-2" />
+            Home
+          </Button>
+        </Link>
       </div>
     </motion.div>
   );
