@@ -8,6 +8,7 @@ import {
   Clock,
   CheckCircle2,
   ClipboardList,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,6 +159,7 @@ export default function DeveloperProjects() {
             router.push(`/developer/projects/${row.id}`);
           }}
         >
+          <FileText className="h-3.5 w-3.5" />
           View Project
         </Button>
       ),
@@ -182,8 +184,7 @@ export default function DeveloperProjects() {
             </p>
             <p className="text-2xl font-bold">
               {
-                developerProjects.filter((p) => p.status === "in-progress")
-                  .length
+                developerProjects.filter((p) => p.status === "in-progress").length
               }
             </p>
           </div>

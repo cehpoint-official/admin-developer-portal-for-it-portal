@@ -10,7 +10,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle, XCircle, AlertCircle, Clock } from "lucide-react";
+import {
+  Eye,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Clock,
+  Loader,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -43,6 +50,7 @@ type ProjectTableProps = {
   baseRoute?: string;
   emptyMessage?: string;
   itemsPerPage?: number;
+  loading?: boolean;
 };
 
 const StatusBadge: React.FC<{ status: ProjectStatus }> = ({ status }) => {
@@ -102,6 +110,18 @@ const StatusBadge: React.FC<{ status: ProjectStatus }> = ({ status }) => {
   );
 };
 
+// Skeleton loading animation component
+const SkeletonRow = ({ columns }: { columns: number }) => {
+  return (
+    <TableRow className="animate-pulse">
+      {Array.from({ length: columns }).map((_, index) => (
+        <TableCell key={index}>
+          <div className="h-5 bg-muted/60 rounded w-[80%]"></div>
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+};
 const ProgressBar: React.FC<{ value: number }> = ({ value }) => {
   return (
     <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
@@ -118,6 +138,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   columns,
   emptyMessage = "No data available",
   itemsPerPage = 5,
+  loading = false,
 }) => {
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -140,9 +161,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       },
     }),
   };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
   return (
     <div className="space-y-4">
       <div className="relative overflow-hidden rounded-lg border glassmorphism shadow-sm">
@@ -157,7 +180,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentItems.length > 0 ? (
+            {loading ? (
+              // Display skeleton loading rows
+              Array.from({ length: itemsPerPage }).map((_, index) => (
+                <SkeletonRow key={index} columns={columns.length} />
+              ))
+            ) : currentItems.length > 0 ? (
               currentItems.map((row, rowIndex) => (
                 <motion.tr
                   key={row.id || rowIndex}
@@ -199,7 +227,14 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {emptyMessage}
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <Loader className="h-5 w-5 animate-spin mr-2" />
+                      <span>Loading data...</span>
+                    </div>
+                  ) : (
+                    emptyMessage
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -207,7 +242,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         </Table>
       </div>
 
-      {totalPages > 1 && (
+      {!loading && totalPages > 1 && (
         <div className="flex justify-center mt-4">
           <Pagination>
             <PaginationContent>
