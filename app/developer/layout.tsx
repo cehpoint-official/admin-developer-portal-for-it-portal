@@ -30,7 +30,11 @@ const pageMetadata: PageMetadataDict = {
   "/developer/chat": {
     title: "Chat with Admin",
     description: "Direct communication channel with administrators"
-  }
+  },
+  "/developer/settings": {
+    title: "Settings",
+    description: "Manage your account preferences",
+  },
 };
 
 export default function DeveloperLayout({

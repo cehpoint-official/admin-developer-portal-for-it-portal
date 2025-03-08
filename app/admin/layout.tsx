@@ -40,6 +40,10 @@ const pageMetadata: PageMetadataDict = {
     title: "Team Management",
     description: "Manage developers and designers",
   },
+  "/admin/settings": {
+    title: "Settings",
+    description: "Manage your account preferences",
+  },
 };
 
 export default function AdminLayout({

@@ -168,14 +168,21 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start"
+            <Link
+              href={
+                role === "admin" ? "/admin/settings" : "/developer/settings"
+              }
             >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </Button>
+            </Link>
+
             <Button
               variant="outline"
               size="sm"
