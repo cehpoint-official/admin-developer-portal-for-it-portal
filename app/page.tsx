@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, FormEvent, ChangeEvent } from "react";
+import type React from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -17,60 +17,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { UserIcon, ShieldIcon, CodeIcon, Loader } from "lucide-react";
+import { UserIcon, ShieldIcon, CodeIcon } from "lucide-react";
 import Image from "next/image";
-import {
-  doc,
-  setDoc,
-  serverTimestamp,
-  getDoc,
-  collection,
-  where,
-  query,
-  getDocs,
-} from "firebase/firestore";
-import {
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  updateProfile,
-  User,
-  UserCredential,
-} from "firebase/auth";
-import { auth, db, googleProvider } from "@/firebase";
-
-// Define type for client signup form
-interface ClientSignupForm {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  confirmPassword: string;
-}
-
-// Define type for login form
-interface LoginForm {
-  email: string;
-  password: string;
-}
-
-// Define type for user roles
-type UserRole = "client" | "admin" | "developer";
-
-// Define Firebase error type
-interface FirebaseError {
-  code: string;
-  message?: string;
-}
+import { useAuth } from "@/lib/hooks/useAuth";
+import { UserRole } from "@/lib/store/userStore";
 
 export default function AuthPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showStaffLogin, setShowStaffLogin] = useState<boolean>(false);
+  const { signUp, login, googleLogin, isLoading, error } = useAuth();
+
+
+  const [showStaffLogin, setShowStaffLogin] = useState(false);
 
   // Client signup form state
-  const [clientSignupForm, setClientSignupForm] = useState<ClientSignupForm>({
+  const [clientSignupForm, setClientSignupForm] = useState({
     name: "",
     email: "",
     phone: "",
@@ -79,13 +38,20 @@ export default function AuthPage() {
   });
 
   // Login form state
-  const [loginForm, setLoginForm] = useState<LoginForm>({
+  const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
   });
 
+  // Show toast for errors from auth hook
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
   // Handle client signup form changes
-  const handleClientSignupChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleClientSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setClientSignupForm({
       ...clientSignupForm,
       [e.target.id]: e.target.value,
@@ -93,7 +59,7 @@ export default function AuthPage() {
   };
 
   // Handle login form changes
-  const handleLoginChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginForm({
       ...loginForm,
       [e.target.id]: e.target.value,
@@ -101,238 +67,57 @@ export default function AuthPage() {
   };
 
   // Handle client signup
-  const handleClientSignup = async (e: FormEvent): Promise<void> => {
+  const handleClientSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
     // Validate form
     if (clientSignupForm.password !== clientSignupForm.confirmPassword) {
-      toast.error("Passwords don't match", {
-        description: "Please make sure your passwords match.",
-      });
-      setIsLoading(false);
+      toast.error("Passwords don't match");
       return;
     }
 
     try {
-      // Create user with Firebase auth
-      const userCredential: UserCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          clientSignupForm.email,
-          clientSignupForm.password
-        );
+      const success = await signUp(
+        clientSignupForm.email,
+        clientSignupForm.password,
+        clientSignupForm.name,
+        clientSignupForm.phone
+      );
 
-      const user: User = userCredential.user;
-
-      // Update profile with display name
-      await updateProfile(user, {
-        displayName: clientSignupForm.name,
-      });
-
-      // Send email verification
-      await sendEmailVerification(user);
-
-      // Store additional user data in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        name: clientSignupForm.name,
-        email: clientSignupForm.email,
-        phone: clientSignupForm.phone,
-        password: clientSignupForm.password,
-        role: "client" as UserRole,
-        createdAt: serverTimestamp(),
-        lastLogin: serverTimestamp(),
-      });
-
-      toast.success("Account created!", {
-        description:
-          "You've successfully signed up as a client. Please verify your email.",
-      });
-
-      // Redirect to client dashboard
-      router.push("/projects");
+      if (success) {
+        toast.success("Account created successfully!");
+      }
     } catch (error) {
-      console.error("Error during signup:", error);
-
-      const errorMessage = getErrorMessage(error as FirebaseError);
-      toast.error("Signup failed", {
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
+      console.error("Signup error:", error);
     }
   };
 
   // Handle login (for all roles)
-  // Modify the handleLogin function to only use database authentication
-  const handleLogin = async (e: FormEvent, role: UserRole): Promise<void> => {
+  const handleLogin = async (e: React.FormEvent, role: UserRole) => {
     e.preventDefault();
-    setIsLoading(true);
 
     try {
-      // Query the database to find a user with the given email
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", loginForm.email));
-      const querySnapshot = await getDocs(q);
+      const success = await login(loginForm.email, loginForm.password, role);
 
-      // Check if a user with this email exists
-      if (querySnapshot.empty) {
-        throw new Error("No account found with this email");
-      }
-
-      // Find the user document
-      let userDoc = null;
-      let userData = null;
-      let userId = null;
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        // Check if the password matches (Note: In a real app, you'd need proper password hashing)
-        if (data.password === loginForm.password) {
-          userDoc = doc;
-          userData = data;
-          userId = doc.id;
-        }
-      });
-
-      // If no matching password was found
-      if (!userDoc) {
-        throw new Error("Invalid email or password");
-      }
-
-      // Check if the user has the requested role
-      if (userData.role !== role) {
-        throw new Error(
-          `You don't have ${role} privileges. Please use the appropriate login option.`
-        );
-      }
-
-      // Update last login timestamp
-      await setDoc(
-        doc(db, "users", userId),
-        {
-          lastLogin: serverTimestamp(),
-        },
-        { merge: true }
-      );
-
-      // Reset form fields
-      setLoginForm({
-        email: "",
-        password: "",
-      });
-
-      toast.success("Welcome back!", {
-        description: `You've successfully logged in as a ${role}.`,
-      });
-
-      // Redirect based on role
-      switch (role) {
-        case "client":
-          router.push("/projects");
-          break;
-        case "admin":
-          router.push("/admin");
-          break;
-        case "developer":
-          router.push("/developer");
-          break;
+      if (success) {
+        toast.success(`Welcome back, ${role}!`);
       }
     } catch (error) {
-      console.error("Error during login:", error);
-
-      const errorMessage =
-        typeof error === "object" && error !== null && "message" in error
-          ? error.message
-          : "An unknown error occurred";
-
-      toast.error("Login failed", {
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+      console.error("Login error:", error);
+    } 
   };
+
   // Handle Google sign-in
-  const handleGoogleSignIn = async (): Promise<void> => {
-    setIsLoading(true);
+  const handleGoogleSignIn = async () => {
 
     try {
-      // Sign in with Google
-      const result: UserCredential = await signInWithPopup(
-        auth,
-        googleProvider
-      );
+      const success = await googleLogin();
 
-      // Get credentials
-      const user: User = result.user;
-
-      // Check if user already exists in our database
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-
-      if (!userDoc.exists()) {
-        // If new user, create record with client role
-        await setDoc(doc(db, "users", user.uid), {
-          name: user.displayName || "",
-          email: user.email,
-          phone: user.phoneNumber || "",
-          role: "client" as UserRole, // Default role for Google sign-ins
-          createdAt: serverTimestamp(),
-          lastLogin: serverTimestamp(),
-          photoURL: user.photoURL || "",
-          isGoogleAccount: true,
-        });
-
-        toast.success("Account created with Google!", {
-          description: "You've been registered as a client.",
-        });
-      } else {
-        // Update last login timestamp for existing user
-        await setDoc(
-          doc(db, "users", user.uid),
-          {
-            lastLogin: serverTimestamp(),
-          },
-          { merge: true }
-        );
-
-        toast.success("Google sign-in successful!", {
-          description: "Welcome back to your account.",
-        });
+      if (success) {
+        toast.success("Google sign-in successful!");
       }
-
-      // Redirect to client dashboard
-      router.push("/projects");
     } catch (error) {
-      console.error("Error during Google sign-in:", error);
-
-      const errorMessage = getErrorMessage(error as FirebaseError);
-      toast.error("Google sign-in failed", {
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Helper function to get user-friendly error messages
-  const getErrorMessage = (error: FirebaseError): string => {
-    switch (error.code) {
-      case "auth/email-already-in-use":
-        return "This email is already registered.";
-      case "auth/invalid-email":
-        return "Please provide a valid email address.";
-      case "auth/weak-password":
-        return "Password should be at least 6 characters.";
-      case "auth/user-not-found":
-      case "auth/wrong-password":
-        return "Invalid email or password.";
-      case "auth/too-many-requests":
-        return "Too many unsuccessful login attempts. Try again later.";
-      case "auth/popup-closed-by-user":
-        return "Google sign-in was cancelled.";
-      default:
-        return error.message || "An unknown error occurred.";
+      console.error("Google sign-in error:", error);
     }
   };
 
@@ -374,6 +159,14 @@ export default function AuthPage() {
         animate="visible"
         variants={containerVariants}
       >
+        {/* Main heading */}
+        {/* <motion.div className="text-center mb-8" variants={itemVariants}>
+          <h1 className="text-4xl font-bold text-blue-700">
+            Welcome to Our Platform
+          </h1>
+          <p className="text-gray-600 mt-2">Sign up or log in to get started</p>
+        </motion.div> */}
+
         {/* Toggle between client and staff sections */}
         <motion.div
           className="flex justify-center mb-8"
@@ -577,14 +370,9 @@ export default function AuthPage() {
                               className="w-full"
                               disabled={isLoading}
                             >
-                              {isLoading ? (
-                                <div className="flex items-center">
-                                  <Loader className="h-4 w-4 animate-spin mr-2" />
-                                  Creating account...
-                                </div>
-                              ) : (
-                                "Create account"
-                              )}
+                              {isLoading
+                                ? "Creating account..."
+                                : "Create account"}
                             </Button>
                           </motion.div>
                         </div>
@@ -612,17 +400,13 @@ export default function AuthPage() {
                             onClick={handleGoogleSignIn}
                             disabled={isLoading}
                           >
-                            {isLoading ? (
-                              <Loader className="h-4 w-4 animate-spin mr-2" />
-                            ) : (
-                              <Image
-                                src="/google.png"
-                                width={20}
-                                height={20}
-                                alt="Google logo"
-                                className="h-4 w-4"
-                              />
-                            )}
+                            <Image
+                              src="/google.png"
+                              width={500}
+                              height={500}
+                              alt="Picture of the author"
+                              className="h-4 w-4"
+                            />
                             Google
                           </Button>
                         </motion.div>
@@ -639,7 +423,7 @@ export default function AuthPage() {
                       >
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="client-email">Email</Label>
                             <Input
                               id="email"
                               type="email"
@@ -650,7 +434,7 @@ export default function AuthPage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="client-password">Password</Label>
                             <Input
                               id="password"
                               type="password"
@@ -669,14 +453,7 @@ export default function AuthPage() {
                               className="w-full"
                               disabled={isLoading}
                             >
-                              {isLoading ? (
-                                <div className="flex items-center">
-                                  <Loader className="h-4 w-4 animate-spin mr-2" />
-                                  Logging in...
-                                </div>
-                              ) : (
-                                "Login as Client"
-                              )}
+                              {isLoading ? "Logging in..." : "Login as Client"}
                             </Button>
                           </motion.div>
                         </div>
@@ -704,17 +481,13 @@ export default function AuthPage() {
                             onClick={handleGoogleSignIn}
                             disabled={isLoading}
                           >
-                            {isLoading ? (
-                              <Loader className="h-4 w-4 animate-spin mr-2" />
-                            ) : (
-                              <Image
-                                src="/google.png"
-                                width={20}
-                                height={20}
-                                alt="Google logo"
-                                className="h-4 w-4"
-                              />
-                            )}
+                            <Image
+                              src="/google.png"
+                              width={500}
+                              height={500}
+                              alt="Picture of the author"
+                              className="h-4 w-4"
+                            />
                             Google
                           </Button>
                         </motion.div>
@@ -800,7 +573,7 @@ export default function AuthPage() {
                       >
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="email">Admin Email</Label>
+                            <Label htmlFor="admin-email">Admin Email</Label>
                             <Input
                               id="email"
                               type="email"
@@ -811,7 +584,7 @@ export default function AuthPage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="admin-password">Password</Label>
                             <Input
                               id="password"
                               type="password"
@@ -830,14 +603,7 @@ export default function AuthPage() {
                               className="w-full"
                               disabled={isLoading}
                             >
-                              {isLoading ? (
-                                <div className="flex items-center">
-                                  <Loader className="h-4 w-4 animate-spin mr-2" />
-                                  Logging in...
-                                </div>
-                              ) : (
-                                "Login as Admin"
-                              )}
+                              {isLoading ? "Logging in..." : "Login as Admin"}
                             </Button>
                           </motion.div>
                         </div>
@@ -854,7 +620,9 @@ export default function AuthPage() {
                       >
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="email">Developer Email</Label>
+                            <Label htmlFor="developer-email">
+                              Developer Email
+                            </Label>
                             <Input
                               id="email"
                               type="email"
@@ -865,7 +633,7 @@ export default function AuthPage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="developer-password">Password</Label>
                             <Input
                               id="password"
                               type="password"
@@ -884,14 +652,9 @@ export default function AuthPage() {
                               className="w-full"
                               disabled={isLoading}
                             >
-                              {isLoading ? (
-                                <div className="flex items-center">
-                                  <Loader className="h-4 w-4 animate-spin mr-2" />
-                                  Logging in...
-                                </div>
-                              ) : (
-                                "Login as Developer"
-                              )}
+                              {isLoading
+                                ? "Logging in..."
+                                : "Login as Developer"}
                             </Button>
                           </motion.div>
                         </div>
