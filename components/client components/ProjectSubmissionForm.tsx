@@ -9,7 +9,7 @@ import { DevelopmentPreferences } from "./steps/DevelopmentPreferences";
 import { Suggestions } from "./steps/Suggestions";
 import { Documentation } from "./steps/Documentation";
 import { FinalStep } from "./steps/FinalStep";
-import { useAuthStore } from "@/lib/store/userStore";
+
 
 export function ProjectSubmissionForm() {
   return <ProjectFormContent />;
@@ -21,22 +21,21 @@ function ProjectFormContent() {
     nextStep,
     prevStep,
     formData,
-    validationErrors,
     validateCurrentStep,
   } = useProjectFormStore();
- // const { toast } = useToast();
+  // const { toast } = useToast();
   const [showSuggestions, setShowSuggestions] = useState(false);
- const { user } = useAuthStore();
-  console.log(user);
+
+
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
 
     if (!isValid) {
-    //   toast({
-    //     title: "Validation Error",
-    //     description: "Please check the form for errors and try again.",
-    //     variant: "destructive",
-    //   });
+      //   toast({
+      //     title: "Validation Error",
+      //     description: "Please check the form for errors and try again.",
+      //     variant: "destructive",
+      //   });
       return;
     }
 
@@ -78,7 +77,7 @@ function ProjectFormContent() {
                 exit={{ x: 50, opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <ProjectDetails/>
+                <ProjectDetails />
               </motion.div>
             )}
 

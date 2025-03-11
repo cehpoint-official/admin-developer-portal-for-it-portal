@@ -1,83 +1,150 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileUp, FileText, Download, RefreshCw, Wand2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useProjectFormStore } from "@/lib/store/projectSteps";
+import { Editor } from "../Editor";
+import { PdfViewer } from "../PdfViewer";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileUp, FileText, Download, RefreshCw, Wand2 } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useProjectFormStore } from "@/lib/store/projectSteps"
-import { Editor } from "../Editor"
-import { PdfViewer } from "../PdfViewer"
+import { validatePdfFile } from "@/lib/PdfValidation";
+import { toast } from "sonner";
+import axios from "axios";
+import { z } from "zod";
+import { generateDeveloperDocumentationFromPdf } from "@/app/actions/upload-actions";
+// Convert 10MB to bytes for size validation
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
+// Zod schema for PDF file validation
+export const pdfFileSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine((file) => file.type === "application/pdf", {
+      message: "Only PDF files are supported",
+    })
+    .refine((file) => file.size <= MAX_FILE_SIZE, {
+      message: "File size must be less than 10MB",
+    }),
+});
 
 export function Documentation() {
-  const { formData, updateFormData, generateQuotation } = useProjectFormStore()
-  const [activeTab, setActiveTab] = useState("upload")
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isImproving, setIsImproving] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
-  const [fileName, setFileName] = useState<string>("")
-  console.log(formData);
+  const { formData, updateFormData, generateQuotation } = useProjectFormStore();
+  const [activeTab, setActiveTab] = useState("upload");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
+  const [fileError, setFileError] = useState<string | null>(null);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setFileName(file.name)
+      const file = e.target.files[0];
 
-      // Read the file content
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        if (event.target) {
-          // For PDF files, we'll store the data URL
-          const fileContent = event.target.result as string
-          updateFormData({
-            documentationFile: file,
-            documentationFileContent: fileContent,
-          })
-        }
+      // Validate file using Zod with toast notifications
+      const validation = validatePdfFile(file);
+
+      if (!validation.success) {
+        setFileError(validation.error || "Unknown error");
+        return;
       }
 
-      if (file.type === "application/pdf") {
-        reader.readAsDataURL(file)
-      } else {
-        reader.readAsText(file)
+      setFileError(null);
+      setFileName(validation.data?.file.name || "");
+
+      try {
+        const cloudinaryData = new FormData();
+        cloudinaryData.append("file", validation.data?.file || "");
+        cloudinaryData.append("upload_preset", "AllPDF");
+        cloudinaryData.append("cloud_name", "dj7nt0s4x");
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/dj7nt0s4x/image/upload`,
+          cloudinaryData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        console.log(response.data); // Log the entire response to understand its structure
+
+        const pdfUrl = response.data.secure_url;
+        const fileNameUrl = {
+          name: response.data.original_filename,
+          url: pdfUrl,
+        };
+        const extractedText = await generateDeveloperDocumentationFromPdf(fileNameUrl); // Extract text
+
+        if (pdfUrl) {
+          toast.success("PDF uploaded successfully!");
+          updateFormData({ documentationFile: pdfUrl });
+        } else {
+          toast.error("Failed to upload PDF to Cloudinary");
+        }
+      } catch (error) {
+        console.error("Error reading file:", error);
+        toast.error("Error reading file. Please try again.");
+        setFileError("Error reading file. Please try again.");
       }
     }
-  }
+  };
 
   const generateDocumentation = () => {
-    setIsGenerating(true)
+    setIsGenerating(true);
 
     // Simulate API call to generate documentation
     setTimeout(() => {
       const generatedDoc = generateSampleDocumentation(
         formData.projectName,
         formData.projectOverview,
-        formData.developmentAreas,
-      )
+        formData.developmentAreas
+      );
 
-      updateFormData({ generatedDocumentation: generatedDoc })
-      setIsGenerating(false)
-    }, 2000)
-  }
+      updateFormData({ generatedDocumentation: generatedDoc });
+      setIsGenerating(false);
+    }, 2000);
+  };
 
   const improveDocumentation = () => {
-    setIsImproving(true)
+    setIsImproving(true);
 
-    // Simulate AI improving the documentation
+    // Simulate AI improving the documentation using the extracted text
     setTimeout(() => {
+      const extractedText =
+        formData.documentationFileText || "No text extracted";
+      console.log(
+        "Using extracted text for AI improvement:",
+        extractedText.substring(0, 100) + "..."
+      );
+
       const improvedDoc = `
         <h1>🚀 Enhanced Documentation for ${formData.projectName}</h1>
         
         <h2>Project Overview (AI Improved)</h2>
         <p>${formData.projectOverview}</p>
-        <p>This documentation has been enhanced by AI to provide clearer instructions and better structure for developers.</p>
+        <p>This documentation has been enhanced by AI based on your uploaded PDF and project details.</p>
+        
+        <h2>Original Document Analysis</h2>
+        <p>We've analyzed your uploaded document and extracted key information to improve the development process.</p>
+        <p><em>First 300 characters of extracted content:</em> ${(
+          formData.documentationFileText || ""
+        ).substring(0, 300)}...</p>
         
         <h2>Development Areas</h2>
         <ul>
-          ${formData.developmentAreas.map((area) => `<li><strong>${area}</strong> - Detailed implementation guidelines</li>`).join("")}
+          ${formData.developmentAreas
+            .map(
+              (area) =>
+                `<li><strong>${area}</strong> - Detailed implementation guidelines</li>`
+            )
+            .join("")}
         </ul>
         
         <h2>1. Technical Architecture</h2>
@@ -128,31 +195,36 @@ export function Documentation() {
           <li>Docker containers for backend services</li>
           <li>Database migrations with safety checks</li>
         </ul>
-      `
+      `;
 
-      updateFormData({ improvedDocumentation: improvedDoc })
-      setIsImproving(false)
-    }, 3000)
-  }
+      updateFormData({ improvedDocumentation: improvedDoc });
+      setIsImproving(false);
+    }, 3000);
+  };
 
   const handleEditorChange = (value: string) => {
-    updateFormData({ generatedDocumentation: value })
-  }
+    updateFormData({ generatedDocumentation: value });
+  };
 
   const handleImprovedEditorChange = (value: string) => {
-    updateFormData({ improvedDocumentation: value })
-  }
+    updateFormData({ improvedDocumentation: value });
+  };
 
   // Generate quotation when reaching this step
   useEffect(() => {
-    generateQuotation()
-  }, [generateQuotation])
+    // Generate quotation only once when component mounts
+    if (!formData.quotationPdf) {
+      generateQuotation();
+    }
+  }, []); // Empty dependency array to run only once
 
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm text-muted-foreground">Step 3/4</p>
-        <h2 className="text-2xl font-bold text-foreground">Share Your Documentation</h2>
+        <h2 className="text-2xl font-bold text-foreground">
+          Share Your Documentation
+        </h2>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -165,14 +237,16 @@ export function Documentation() {
           <div className="border-2 border-dashed rounded-lg p-8 text-center">
             <FileUp className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="font-medium">Upload your requirements document</h3>
-            <p className="text-sm text-muted-foreground mb-4">PDF, DOCX, or TXT files up to 10MB</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Only PDF files are supported (up to 10MB)
+            </p>
 
             <div className="flex justify-center">
               <input
                 type="file"
                 id="file-upload"
                 className="hidden"
-                accept=".pdf,.docx,.txt"
+                accept="application/pdf"
                 onChange={handleFileChange}
               />
               <Label
@@ -180,9 +254,13 @@ export function Documentation() {
                 className="cursor-pointer inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
               >
                 <FileUp className="h-4 w-4" />
-                {fileName ? fileName : "Select File"}
+                {fileName ? fileName : "Select PDF File"}
               </Label>
             </div>
+
+            {fileError && (
+              <p className="text-sm text-destructive mt-2">{fileError}</p>
+            )}
           </div>
 
           {formData.documentationFile && (
@@ -193,9 +271,6 @@ export function Documentation() {
                   <span className="font-medium">{fileName}</span>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" onClick={() => setShowPreview(true)}>
-                    Preview
-                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -223,32 +298,34 @@ export function Documentation() {
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium">AI-Improved Documentation</h3>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setShowPreview(true)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowPreview(true)}
+                      >
                         Preview
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          const blob = new Blob([formData.improvedDocumentation || ""], { type: "text/html" })
-                          const url = URL.createObjectURL(blob)
-                          const a = document.createElement("a")
-                          a.href = url
-                          a.download = `${formData.projectName}-improved-documentation.html`
-                          document.body.appendChild(a)
-                          a.click()
-                          document.body.removeChild(a)
-                          URL.revokeObjectURL(url)
-                        }}
+                        onClick={() =>
+                          downloadAsPdf(
+                            formData.improvedDocumentation || "",
+                            `${formData.projectName}-improved-documentation`
+                          )
+                        }
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        Download
+                        Download PDF
                       </Button>
                     </div>
                   </div>
 
                   <div className="border rounded-md h-64 overflow-y-auto">
-                    <Editor value={formData.improvedDocumentation} onChange={handleImprovedEditorChange} />
+                    <Editor
+                      value={formData.improvedDocumentation}
+                      onChange={handleImprovedEditorChange}
+                    />
                   </div>
                 </div>
               )}
@@ -262,7 +339,8 @@ export function Documentation() {
               <FileText className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
               <h3 className="font-medium">Generate Developer Documentation</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                We'll create detailed documentation based on your project details
+                We'll create detailed documentation based on your project
+                details
               </p>
 
               <Button onClick={generateDocumentation}>Generate Now</Button>
@@ -273,7 +351,9 @@ export function Documentation() {
             <div className="border rounded-lg p-8 text-center">
               <RefreshCw className="mx-auto h-10 w-10 text-primary mb-4 animate-spin" />
               <h3 className="font-medium">Generating Documentation...</h3>
-              <p className="text-sm text-muted-foreground">This may take a few moments</p>
+              <p className="text-sm text-muted-foreground">
+                This may take a few moments
+              </p>
             </div>
           )}
 
@@ -282,32 +362,34 @@ export function Documentation() {
               <div className="flex items-center justify-between">
                 <h3 className="font-medium">Generated Documentation</h3>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setShowPreview(true)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowPreview(true)}
+                  >
                     Preview
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => {
-                      const blob = new Blob([formData.generatedDocumentation], { type: "text/html" })
-                      const url = URL.createObjectURL(blob)
-                      const a = document.createElement("a")
-                      a.href = url
-                      a.download = `${formData.projectName}-documentation.html`
-                      document.body.appendChild(a)
-                      a.click()
-                      document.body.removeChild(a)
-                      URL.revokeObjectURL(url)
-                    }}
+                    onClick={() =>
+                      downloadAsPdf(
+                        formData.generatedDocumentation,
+                        `${formData.projectName}-documentation`
+                      )
+                    }
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Download
+                    Download PDF
                   </Button>
                 </div>
               </div>
 
               <div className="border rounded-md h-64 overflow-y-auto">
-                <Editor value={formData.generatedDocumentation} onChange={handleEditorChange} />
+                <Editor
+                  value={formData.generatedDocumentation}
+                  onChange={handleEditorChange}
+                />
               </div>
             </div>
           )}
@@ -320,8 +402,13 @@ export function Documentation() {
             <DialogTitle>Documentation Preview</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto h-full p-4 border rounded-md">
-            {formData.documentationFile && formData.documentationFileContent && !formData.improvedDocumentation ? (
-              <PdfViewer fileUrl={formData.documentationFileContent} fileName={fileName} />
+            {formData.documentationFile &&
+            formData.documentationFileContent &&
+            !formData.improvedDocumentation ? (
+              <PdfViewer
+                fileUrl={formData.documentationFileContent}
+                fileName={fileName}
+              />
             ) : formData.improvedDocumentation ? (
               <div
                 className="prose prose-sm max-w-none"
@@ -341,10 +428,71 @@ export function Documentation() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
-function generateSampleDocumentation(projectName: string, projectOverview: string, developmentAreas: string[]): string {
+// Function to download content as PDF
+async function downloadAsPdf(htmlContent: string, filename: string) {
+  // Create a temporary div to render the HTML
+  const element = document.createElement("div");
+  element.innerHTML = htmlContent;
+  document.body.appendChild(element);
+
+  try {
+    const { jsPDF } = await import("jspdf");
+    const { default: html2canvas } = await import("html2canvas");
+
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    // Initialize jsPDF
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // Calculate dimensions
+    const imgWidth = 210; // A4 width in mm
+    const pageHeight = 295; // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Add first page
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // Add additional pages if needed
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    // Save the PDF
+    pdf.save(`${filename}.pdf`);
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    alert("Failed to generate PDF. Please try again.");
+  } finally {
+    // Clean up
+    document.body.removeChild(element);
+  }
+}
+
+function generateSampleDocumentation(
+  projectName: string,
+  projectOverview: string,
+  developmentAreas: string[]
+): string {
   return `
     <h1>🔷 ${projectName} - Developer Documentation</h1>
     
@@ -382,6 +530,5 @@ function generateSampleDocumentation(projectName: string, projectOverview: strin
     <h3>✔ Frontend: Next.js, TypeScript, Tailwind CSS</h3>
     <h3>✔ Backend: Node.js, Express.js, MongoDB</h3>
     <h3>✔ Authentication: JWT</h3>
-  `
+  `;
 }
-

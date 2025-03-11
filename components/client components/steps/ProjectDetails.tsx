@@ -3,20 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useProjectFormStore } from "@/lib/store/projectSteps";
-import { useAuthStore } from "@/lib/store/userStore";
+import { useEffect } from "react";
 
 export function ProjectDetails() {
-  const { formData, updateFormData, validationErrors } = useProjectFormStore();
-//   const { user } = useAuthStore();
-//   console.log(user);
+  const { formData, updateFormData, validationErrors,syncUserData  } = useProjectFormStore();
+  useEffect(() => {
+    syncUserData();
+  }, [syncUserData]);
+  console.log(formData);
 
-//   updateFormData({
-//     clientName: "",
-//     clientEmail: "",
-//     clientPhoneNumber: "",
-//   });
-
-//   console.log(formData);
   return (
     <div className="space-y-6">
       <div>

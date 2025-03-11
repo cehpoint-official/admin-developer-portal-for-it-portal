@@ -1,77 +1,83 @@
-"use client";
-
+// src/stores/projectFormStore.ts
 import { create } from "zustand";
 import { z } from "zod";
+import { useAuthStore } from "./userStore";
 
-// Define the form data structure
 export interface ProjectFormData {
-  clientName: string;
-  clientEmail: string;
-  clientPhoneNumber: string;
-  projectName: string;
-  projectOverview: string;
-  developmentAreas: string[];
-  seniorDevelopers: number;
-  juniorDevelopers: number;
-  uiUxDesigners: number;
-  documentationFile: File | null;
-  documentationFileContent: string | null;
-  generatedDocumentation: string;
-  improvedDocumentation: string | null;
-  quotationPdf: string | null;
+  projectName: string
+  projectOverview: string
+  developmentAreas: string[]
+  seniorDevelopers: number
+  juniorDevelopers: number
+  uiUxDesigners: number
+  documentationFile: File | null
+  documentationFileContent: string | null
+  documentationFileText: string | null
+  generatedDocumentation: string
+  improvedDocumentation: string | null
+  quotationPdf: string | null
+  clientName: string
+  clientEmail: string
+  clientPhoneNumber: string
 }
 
 // Define validation schemas for each step
 const projectDetailsSchema = z.object({
-  projectName: z
-    .string()
-    .min(10, "Project name must be at least 10 characters"),
-  projectOverview: z
-    .string()
-    .min(100, "Project overview must be at least 100 characters"),
-});
+  projectName: z.string().min(10, "Project name must be at least 10 characters"),
+  projectOverview: z.string().min(100, "Project overview must be at least 100 characters"),
+  clientName: z.string().min(3, "Client name must be at least 3 characters"),
+  clientEmail: z.string().email("Please enter a valid email address"),
+  clientPhoneNumber: z.string().min(10, "Please enter a valid phone number"),
+})
 
 const developmentPreferencesSchema = z
   .object({
-    developmentAreas: z
-      .array(z.string())
-      .min(1, "At least one development area is required"),
+    developmentAreas: z.array(z.string()).min(1, "At least one development area is required"),
     seniorDevelopers: z.number(),
     juniorDevelopers: z.number(),
     uiUxDesigners: z.number(),
   })
-  .refine(
-    (data) =>
-      data.seniorDevelopers + data.juniorDevelopers + data.uiUxDesigners > 0,
-    {
-      message: "At least one team member is required",
-      path: ["teamMembers"],
-    }
-  );
+  .refine((data) => data.seniorDevelopers + data.juniorDevelopers + data.uiUxDesigners > 0, {
+    message: "At least one team member is required",
+    path: ["teamMembers"],
+  })
 
 const documentationSchema = z
   .object({
     documentationFile: z.any().optional(),
     documentationFileContent: z.string().nullable(),
+    documentationFileText: z.string().nullable(),
     generatedDocumentation: z.string().optional(),
     improvedDocumentation: z.string().nullable(),
   })
   .refine(
     (data) =>
-      data.documentationFile !== null ||
-      data.generatedDocumentation !== "" ||
-      data.improvedDocumentation !== null,
+      data.documentationFile !== null || data.generatedDocumentation !== "" || data.improvedDocumentation !== null,
     {
       message: "Either upload a file or generate documentation",
       path: ["documentation"],
-    }
-  );
+    },
+  )
 
-// Initial form data
-const initialFormData: ProjectFormData = {
-  clientName: "",
-  clientEmail: "",
-  clientPhoneNumber: "",
+// Define the store type
+interface ProjectFormStore {
+  // State
+  step: number
+  formData: ProjectFormData
+  validationErrors: Record<string, string>
+  
+  // Actions
+  nextStep: () => void
+  prevStep: () => void
+  updateFormData: (data: Partial<ProjectFormData>) => void
+  validateCurrentStep: () => Promise<boolean>
+  generateQuotation: () => void
+  resetForm: () => void
+  syncUserData: () => void  // New function to sync user data from auth store
+}
+
+// Default form data without user info
+const defaultFormData: ProjectFormData = {
   projectName: "",
   projectOverview: "",
   developmentAreas: [],
@@ -80,88 +86,105 @@ const initialFormData: ProjectFormData = {
   uiUxDesigners: 0,
   documentationFile: null,
   documentationFileContent: null,
+  documentationFileText: null,
   generatedDocumentation: "",
   improvedDocumentation: null,
   quotationPdf: null,
-};
-
-// Define the store type
-interface ProjectFormStore {
-  step: number;
-  formData: ProjectFormData;
-  validationErrors: Record<string, string>;
-  nextStep: () => void;
-  prevStep: () => void;
-  updateFormData: (data: Partial<ProjectFormData>) => void;
-  validateCurrentStep: () => Promise<boolean>;
-  generateQuotation: () => void;
+  clientName: "",
+  clientEmail: "",
+  clientPhoneNumber: "",
 }
 
 // Create the Zustand store
 export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
+  // Initial state
   step: 1,
-  formData: initialFormData,
+  formData: { ...defaultFormData },
   validationErrors: {},
+  
+  // Actions
+  nextStep: () => set((state) => ({ step: Math.min(state.step + 1, 4) })),
+  
+  prevStep: () => set((state) => ({ step: Math.max(state.step - 1, 1) })),
+  
+  updateFormData: (data) => set((state) => ({
+    formData: { ...state.formData, ...data }
+  })),
+  
+  // Function to sync user data from auth store to form data
 
-  nextStep: () => {
-    set((state) => ({ step: Math.min(state.step + 1, 4) }));
-  },
-
-  prevStep: () => {
-    set((state) => ({ step: Math.max(state.step - 1, 1) }));
-  },
-
-  updateFormData: (data: Partial<ProjectFormData>) => {
-    set((state) => ({ formData: { ...state.formData, ...data } }));
-  },
-
-  validateCurrentStep: async (): Promise<boolean> => {
-    const { step, formData } = get();
+syncUserData: () => {
+  const authState = useAuthStore.getState()
+  const profile = authState.profile
+  
+  if (profile) {
+    set((state) => ({
+      formData: {
+        ...state.formData,
+        clientName: profile.name || "",
+        clientEmail: profile.email || "",
+        clientPhoneNumber: profile.phone || "",
+      }
+    }))
+  }
+},
+  
+  validateCurrentStep: async () => {
+    const { step, formData } = get()
+    
     try {
       if (step === 1) {
         await projectDetailsSchema.parseAsync({
           projectName: formData.projectName,
           projectOverview: formData.projectOverview,
-        });
+          clientName: formData.clientName,
+          clientEmail: formData.clientEmail,
+          clientPhoneNumber: formData.clientPhoneNumber,
+        })
       } else if (step === 2) {
         await developmentPreferencesSchema.parseAsync({
           developmentAreas: formData.developmentAreas,
           seniorDevelopers: formData.seniorDevelopers,
           juniorDevelopers: formData.juniorDevelopers,
           uiUxDesigners: formData.uiUxDesigners,
-        });
+        })
       } else if (step === 3) {
         await documentationSchema.parseAsync({
           documentationFile: formData.documentationFile,
           documentationFileContent: formData.documentationFileContent,
+          documentationFileText: formData.documentationFileText,
           generatedDocumentation: formData.generatedDocumentation,
           improvedDocumentation: formData.improvedDocumentation,
-        });
+        })
       }
 
-      set({ validationErrors: {} });
-      return true;
+      set({ validationErrors: {} })
+      return true
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors: Record<string, string> = {};
+        const errors: Record<string, string> = {}
         error.errors.forEach((err) => {
           if (err.path) {
-            errors[err.path.join(".")] = err.message;
+            errors[err.path.join(".")] = err.message
           }
-        });
-        set({ validationErrors: errors });
+        })
+        set({ validationErrors: errors })
       }
-      return false;
+      return false
     }
   },
-
+  
   generateQuotation: () => {
-    const { formData } = get();
+    const { formData } = get()
+    
+    // Prevent generating if already generated to avoid infinite loops
+    if (formData.quotationPdf) return
+
     // Calculate cost based on team composition
-    const seniorDevCost = formData.seniorDevelopers * 75000;
-    const juniorDevCost = formData.juniorDevelopers * 30000;
-    const uiUxCost = formData.uiUxDesigners * 8000;
-    const totalCost = seniorDevCost + juniorDevCost + uiUxCost;
+    const seniorDevCost = formData.seniorDevelopers * 75000
+    const juniorDevCost = formData.juniorDevelopers * 30000
+    const uiUxCost = formData.uiUxDesigners * 8000
+    const totalCost = seniorDevCost + juniorDevCost + uiUxCost
 
     // Generate HTML for the quotation
     const quotationHtml = `
@@ -329,12 +352,13 @@ export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
       </body>
     </html>
   `
-
-    set((state) => ({
-      formData: {
-        ...state.formData,
-        quotationPdf: quotationHtml,
-      },
-    }));
+    
+    get().updateFormData({ quotationPdf: quotationHtml })
   },
-}));
+  
+  resetForm: () => set({ 
+    step: 1, 
+    formData: { ...defaultFormData },
+    validationErrors: {}
+  }),
+}))
