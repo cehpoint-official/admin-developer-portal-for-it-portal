@@ -73,14 +73,17 @@ export function Documentation() {
           }
         );
 
-        console.log(response.data); // Log the entire response to understand its structure
+       
 
         const pdfUrl = response.data.secure_url;
         const fileNameUrl = {
           name: response.data.original_filename,
           url: pdfUrl,
         };
-        const extractedText = await generateDeveloperDocumentationFromPdf(fileNameUrl); // Extract text
+        const extractedText = await generateDeveloperDocumentationFromPdf(
+          fileNameUrl
+        ); // Extract text
+        console.log(extractedText);
 
         if (pdfUrl) {
           toast.success("PDF uploaded successfully!");
