@@ -19,7 +19,7 @@ const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 /**
  * Generates structured project documentation using Google's Generative AI.
  * @param textContent - Raw project details provided by the client.
- * @returns Generated developer-friendly documentation.
+ * @returns Generated developer-friendly documentation in HTML format.
  */
 export async function generateDocumentationFromGeminiAI(textContent: string): Promise<any> {
   if (!API_KEY) {
@@ -28,143 +28,178 @@ export async function generateDocumentationFromGeminiAI(textContent: string): Pr
 
   try {
     const PROMPT = `
-🔹 **You are an expert Project Architect & Senior Developer.**  
-Your task is to **analyze, improve, and structure** the client's developer document into a **clear, comprehensive, and developer-friendly format.**  
+      🔹 **You are an expert Project Architect & Senior Developer.**  
+      Your task is to **analyze, improve, and structure** the client's developer document into a **clear, comprehensive, and developer-friendly format in fully structured HTML.**  
 
----
+      ---
 
-## 📌 **Client-Provided Developer Document**  
-🔹 **Input Document:**  
-\`\`\`
-${textContent}
-\`\`\`
+      ## 📌 **Client-Provided Developer Document**  
+      🔹 **Input Document:**  
+      \`\`\`
+      ${textContent}
+      \`\`\`
 
----
+      ---
+      📌 **Response Format:**  
+      ✅ AI must return **fully structured, styled HTML** with:  
+      - ✅ **Headings (h1, h2, h3)**
+      - ✅ **Bullet points (ul, li)**
+      - ✅ **Tables for structured data**
+      - ✅ **Code snippets for setup instructions**
+      - ✅ **No special characters like **, \`\`\`**
 
-## **📝 Step 1: Document Improvement**
-✅ **Ensure the following improvements:**  
-- Clarify any ambiguous points.  
-- Add missing but **necessary** details.  
-- Remove redundant or unclear statements.  
-- Ensure **complete** project understanding for developers.  
+      📌 **Section Structure:**  
+      ✅ Each section must dynamically adjust the **number of points** based on project requirements.  
 
----
 
-## 📌 **Step 2: Structured Project Breakdown**  
-### 🔷 **1. Project Overview**  
-📌 **Project Name:** \`[Dynamically generate]\`  
-📌 **Main Objective:** \`[Summarize core purpose]\`  
-📌 **Key Features:**  
-- ✅ \`[Dynamically generate key feature]\`  
-- ✅ \`[Dynamically generate key feature]\`  
-- ✅ \`[Dynamically generate key feature]\`  
-📌 **Target Users:** \`[Specify end-users]\`  
-📌 **Tech Stack:** \`[Dynamically define based on project]\`  
+      ## **🎯 AI Response: Well-Structured HTML Documentation**  
+      **Generate a full HTML document with styling and structure, following this format:**
 
----
+      \`\`\`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Project Documentation</title>
+          <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  line-height: 1.6;
+                  margin: 40px;
+                  background-color: #f9f9f9;
+                  padding: 20px;
+              }
+              h1, h2, h3 {
+                  color: #333;
+                  border-bottom: 2px solid #ddd;
+                  padding-bottom: 5px;
+              }
+              ul {
+                  list-style-type: none;
+                  padding: 0;
+              }
+              ul li::before {
+                  content: "✅ ";
+                  color: green;
+              }
+              table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin: 20px 0;
+                  background: #fff;
+              }
+              table, th, td {
+                  border: 1px solid #ddd;
+              }
+              th, td {
+                  padding: 10px;
+                  text-align: left;
+              }
+              pre {
+                  background: #eee;
+                  padding: 10px;
+                  border-radius: 5px;
+                  overflow-x: auto;
+              }
+          </style>
+      </head>
+      <body>
 
-### 🔷 **2. Project Structure**  
-📌 **Overall System Breakdown:**  
-- 🏢 **Frontend**: \`[Dynamically generate frontend structure]\`  
-- ⚙️ **Backend**: \`[Dynamically generate backend structure]\`  
-- 📦 **Database**: \`[Dynamically define database choice]\`  
-- 🔗 **API Layer**: \`[Dynamically describe API interactions]\`  
-- 🔔 **Real-Time Features (if applicable)**: \`[Mention if real-time updates are needed]\`  
+          <h1>📌 Project Documentation</h1>
 
-📌 **Role-Based Access (if applicable)**  
-- 👤 **Admin Panel**: \`[If required, dynamically generate its structure]\`  
-- 👨‍💻 **Developer Dashboard**: \`[If required, dynamically generate its structure]\`  
-- 👥 **Client/User Panel**: \`[If applicable, generate its details]\`  
+          <h2>1. Project Overview</h2>
+          <ul>
+              <li><strong>Project Name:</strong> [Dynamically generate]</li>
+              <li><strong>Main Objective:</strong> [Summarize core purpose]</li>
+              <li><strong>Key Features:</strong></li>
+              <ul>
+                  <li>✅ [Feature 1]</li>
+                  <li>✅ [Feature 2]</li>
+                  <li>✅ [Feature 3] (More if needed)</li>
+              </ul>
+              <li><strong>Target Users:</strong> [Specify end-users]</li>
+              <li><strong>Tech Stack:</strong> [Dynamically define based on project]</li>
+          </ul>
 
----
+          <h2>2. Project Structure</h2>
+          <ul>
+              <li><strong>Frontend:</strong> [Dynamically generate]</li>
+              <li><strong>Backend:</strong> [Dynamically generate]</li>
+              <li><strong>Database:</strong> [Dynamically define]</li>
+              <li><strong>API Layer:</strong> [Dynamically describe]</li>
+              <li><strong>Real-Time Features:</strong> [If applicable]</li>
+          </ul>
 
-### 🔷 **3. Pages & Components Breakdown**  
+          <h2>3. Pages & Components Breakdown</h2>
 
-🔹 **📌 A. [Dynamically generate page/component name]**  
-📍 **Purpose:** \`[Briefly explain the purpose]\`  
+          <h3>📌 A. [Page Name]</h3>
+          <ul>
+              <li><strong>Purpose:</strong> [Brief explanation]</li>
+              <li><strong>Features:</strong></li>
+              <ul>
+                  <li>✔ [Feature 1]</li>
+                  <li>✔ [Feature 2]</li>
+                  <li>✔ [Feature 3] (More if needed)</li>
+              </ul>
+          </ul>
 
-📍 **Features & Functionalities:**  
-✔ \`[Dynamically generate feature]\`  
-✔ \`[Dynamically generate feature]\`  
-✔ \`[Dynamically generate feature]\`  
+          <h3>📌 Table Schema (if applicable)</h3>
+          <table>
+              <tr>
+                  <th>Column Name</th>
+                  <th>Data Type</th>
+                  <th>Constraints</th>
+              </tr>
+              <tr>
+                  <td>[Column 1]</td>
+                  <td>[Type]</td>
+                  <td>[Constraints]</td>
+              </tr>
+              <tr>
+                  <td>[Column 2]</td>
+                  <td>[Type]</td>
+                  <td>[Constraints]</td>
+              </tr>
+          </table>
 
-📍 **Data Requirements:**  
-- 🗂️ **Data Type:** \`[Specify if applicable]\`  
-- 🛠️ **Source:** \`[Define API, DB, or external source]\`  
+          <h3>📌 API Endpoints</h3>
+          <table>
+              <tr>
+                  <th>Endpoint</th>
+                  <th>Method</th>
+                  <th>Description</th>
+              </tr>
+              <tr>
+                  <td>[API Route]</td>
+                  <td>GET/POST</td>
+                  <td>[Functionality]</td>
+              </tr>
+              <tr>
+                  <td>[API Route]</td>
+                  <td>PUT/DELETE</td>
+                  <td>[Functionality]</td>
+              </tr>
+          </table>
 
-📍 **Component Breakdown (if applicable):**  
-- 🧩 **[Dynamically generate component]** → \`[Describe function]\`  
-- 🧩 **[Dynamically generate component]** → \`[Describe function]\`  
+          <h2>4. Workflow Summary</h2>
+          <ul>
+              <li>1️⃣ <strong>Step 1:</strong> [Describe first step]</li>
+              <li>2️⃣ <strong>Step 2:</strong> [Describe second step]</li>
+              <li>3️⃣ <strong>Step 3:</strong> [Describe third step]</li>
+          </ul>
 
-📍 **Implementation Notes:**  
-📌 \`[List important technical notes]\`  
+          <h2>5. Tech Stack & Implementation</h2>
+          <ul>
+              <li>✔ <strong>Frontend:</strong> [Dynamically Choose]</li>
+              <li>✔ <strong>Backend:</strong> [Dynamically Choose]</li>
+              <li>✔ <strong>Database:</strong> [Dynamically Choose]</li>
+          </ul>
 
-📍 **Table Schema (if applicable):**  
-| Column Name | Data Type | Constraints |  
-|------------|----------|-------------|  
-| \`[Column 1]\` | \`[Type]\` | \`[Constraints]\` |  
-| \`[Column 2]\` | \`[Type]\` | \`[Constraints]\` |  
-
-📍 **API Endpoints (if applicable):**  
-| Endpoint | Method | Description |  
-|----------|--------|-------------|  
-| \`[Dynamically generate]\` | \`GET/POST\` | \`[Describe functionality]\` |  
-| \`[Dynamically generate]\` | \`PUT/DELETE\` | \`[Describe functionality]\` |  
-
-🔹 **📌 B. [Repeat for other pages/components]**  
-
----
-
-### 🔷 **4. Workflow Summary**  
-📌 **Step-by-Step Breakdown**  
-1️⃣ **Step 1:** \`[Describe first step]\`  
-2️⃣ **Step 2:** \`[Describe second step]\`  
-3️⃣ **Step 3:** \`[Describe third step]\`  
-🔹 \`[Continue until complete process is explained]\`  
-
----
-
-### 🔷 **5. Tech Stack & Implementation**  
-📌 **Recommended Technologies:**  
-✔ **Frontend:** \`[Dynamically choose]\`  
-✔ **Backend:** \`[Dynamically choose]\`  
-✔ **Database:** \`[Dynamically choose]\`  
-✔ **Authentication:** \`[If required, specify method]\`  
-✔ **Real-Time Features:** \`[If applicable, list technologies]\`  
-
-📌 **Development Best Practices:**  
-✅ **Code Structure Guidelines** \`[Dynamically suggest]\`  
-✅ **Security Considerations** \`[List key security measures]\`  
-✅ **Performance Optimization** \`[Provide improvement strategies]\`  
-
-📌 **Setup Instructions:**  
-\`\`\`bash
-# Install dependencies
-[Dynamically generate installation commands]
-
-# Start the server
-[Dynamically generate commands]
-\`\`\`
-
-📌 **Additional Recommendations:**  
-📢 \`[List useful tools, frameworks, or methodologies]\`  
-
----
-
-### **📌 Final Output Format**  
-📄 **Ensure the document is formatted for PDF export**:  
-- ✅ **Clear headings & sections**  
-- ✅ **Bullet points for easy readability**  
-- ✅ **Tables for structured data**  
-- ✅ **Code snippets where needed**  
-
-📌 **Developer-Ready Output** → AI must generate content in a way that developers can directly **start implementing the project without confusion.**  
-
----
-
-🔹 **Generate a fully structured and developer-friendly project breakdown based entirely on the provided input document.**  
-
-`;
+      </body>
+      </html>
+      \`\`\`
+    `;
 
     const result = await model.generateContent(PROMPT);
     const response = await result.response.text();

@@ -9,34 +9,38 @@ import { DevelopmentPreferences } from "./steps/DevelopmentPreferences";
 import { Suggestions } from "./steps/Suggestions";
 import { Documentation } from "./steps/Documentation";
 import { FinalStep } from "./steps/FinalStep";
-
+import { toast } from "sonner";
 
 export function ProjectSubmissionForm() {
   return <ProjectFormContent />;
 }
 
 function ProjectFormContent() {
-  const {
-    step,
-    nextStep,
-    prevStep,
-    formData,
-    validateCurrentStep,
-  } = useProjectFormStore();
+  const { step, nextStep, prevStep, formData, validateCurrentStep } =
+    useProjectFormStore();
   // const { toast } = useToast();
   const [showSuggestions, setShowSuggestions] = useState(false);
-
 
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
 
     if (!isValid) {
-      //   toast({
-      //     title: "Validation Error",
-      //     description: "Please check the form for errors and try again.",
-      //     variant: "destructive",
-      //   });
+      toast.error("Validation Error", {
+        description: "Please check the form for errors and try again.",
+      });
       return;
+    }
+
+    // Check if we're on the documentation step and need to submit first
+    if (step === 3) {
+      // Check if documentation has been uploaded to Cloudinary
+      if (!formData.cloudinaryDocumentationUrl) {
+        toast.error("Upload Required", {
+          description:
+            "Please click the Submit button to upload your documentation before proceeding.",
+        });
+        return;
+      }
     }
 
     // Show suggestions after step 2 if needed
@@ -103,8 +107,8 @@ function ProjectFormContent() {
               >
                 <Suggestions
                   onContinue={() => {
-                    nextStep();
-                    setShowSuggestions(false);
+                    nextStep()
+                    setShowSuggestions(false)
                   }}
                 />
               </motion.div>
@@ -137,10 +141,7 @@ function ProjectFormContent() {
           {step < 4 && (
             <div className="flex justify-end gap-4 mt-8">
               {step > 1 && (
-                <button
-                  onClick={prevStep}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
+                <button onClick={prevStep} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
                   Back
                 </button>
               )}
@@ -155,5 +156,7 @@ function ProjectFormContent() {
         </div>
       </div>
     </div>
-  );
+  )
 }
+
+

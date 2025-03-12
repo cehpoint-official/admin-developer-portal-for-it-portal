@@ -3,11 +3,6 @@
 import { extractTextFromPdf } from "@/lib/langchain";
 import { generateDocumentationFromGeminiAI } from "@/lib/gemini";
 
-// Type definitions
-interface UploadResponse {
-  name: string;
-  url: string;
-}
 
 interface DocumentationResult {
   success: boolean;
@@ -32,10 +27,10 @@ function sanitizeText(text: string): string {
  * @returns Result of the documentation generation process
  */
 export async function generateDeveloperDocumentationFromPdf(
-  uploadResponse: UploadResponse
+  uploadResponse: string
 ): Promise<DocumentationResult> {
   // Input validation
-  if (!uploadResponse?.url) {
+  if (!uploadResponse) {
     return {
       success: false,
       message: "Missing file URL in upload response",
@@ -45,7 +40,7 @@ export async function generateDeveloperDocumentationFromPdf(
 
   try {
     // Step 1: Extract text from PDF
-    const extractedText = await extractTextFromPdf(uploadResponse.url);
+    const extractedText = await extractTextFromPdf(uploadResponse);
     
     // Step 2: Process the extracted text - convert to array, sanitize, and filter
     const processedTextLines = extractedText

@@ -2,7 +2,6 @@
 import { create } from "zustand";
 import { z } from "zod";
 import { useAuthStore } from "./userStore";
-
 export interface ProjectFormData {
   projectName: string
   projectOverview: string
@@ -19,6 +18,9 @@ export interface ProjectFormData {
   clientName: string
   clientEmail: string
   clientPhoneNumber: string
+  // Cloudinary URLs
+  cloudinaryDocumentationUrl: string | null
+  cloudinaryQuotationUrl: string | null
 }
 
 // Define validation schemas for each step
@@ -49,10 +51,14 @@ const documentationSchema = z
     documentationFileText: z.string().nullable(),
     generatedDocumentation: z.string().optional(),
     improvedDocumentation: z.string().nullable(),
+    cloudinaryDocumentationUrl: z.string().nullable().optional()
   })
   .refine(
     (data) =>
-      data.documentationFile !== null || data.generatedDocumentation !== "" || data.improvedDocumentation !== null,
+      data.documentationFile !== null ||
+      data.generatedDocumentation !== "" ||
+      data.improvedDocumentation !== null ||
+      data.cloudinaryDocumentationUrl !== null,
     {
       message: "Either upload a file or generate documentation",
       path: ["documentation"],
@@ -93,6 +99,8 @@ const defaultFormData: ProjectFormData = {
   clientName: "",
   clientEmail: "",
   clientPhoneNumber: "",
+  cloudinaryDocumentationUrl: null,
+  cloudinaryQuotationUrl: null,
 }
 
 // Create the Zustand store
@@ -155,6 +163,7 @@ syncUserData: () => {
           documentationFileText: formData.documentationFileText,
           generatedDocumentation: formData.generatedDocumentation,
           improvedDocumentation: formData.improvedDocumentation,
+          cloudinaryDocumentationUrl: formData.cloudinaryDocumentationUrl,
         })
       }
 
@@ -176,10 +185,7 @@ syncUserData: () => {
   
   generateQuotation: () => {
     const { formData } = get()
-    
-    // Prevent generating if already generated to avoid infinite loops
-    if (formData.quotationPdf) return
-
+ 
     // Calculate cost based on team composition
     const seniorDevCost = formData.seniorDevelopers * 75000
     const juniorDevCost = formData.juniorDevelopers * 30000
