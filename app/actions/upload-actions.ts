@@ -1,7 +1,7 @@
 "use server";
 
 import { extractTextFromPdf } from "@/lib/langchain";
-import { generateDocumentationFromGeminiAI } from "@/lib/gemini";
+import { generateImprovedDocumentationFromGeminiAI } from "@/lib/gemini";
 
 
 interface DocumentationResult {
@@ -58,10 +58,9 @@ export async function generateDeveloperDocumentationFromPdf(
     
     // Step 3: Convert array to a single paragraph string
     const extractedTextParagraph = processedTextLines.join(' ');
-    console.log(extractedTextParagraph);
     
     // Step 4: Generate improved documentation using the paragraph text
-    const improvedDocumentation = await generateDocumentationFromGeminiAI(extractedTextParagraph);
+    const improvedDocumentation = await generateImprovedDocumentationFromGeminiAI(extractedTextParagraph);
     
     if (!improvedDocumentation) {
       return {

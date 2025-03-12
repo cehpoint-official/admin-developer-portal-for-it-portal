@@ -174,6 +174,9 @@ export function FinalStep() {
         onOpenChange={setShowQuotationPreview}
       >
         <DialogContent className="max-w-4xl h-[80vh]">
+        <DialogHeader>
+            <DialogTitle>Quotation Preview</DialogTitle>
+          </DialogHeader>
 
           <div className="overflow-y-auto h-full p-4 border rounded-md">
             {formData.quotationPdf ? (
