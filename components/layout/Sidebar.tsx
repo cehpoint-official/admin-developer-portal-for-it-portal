@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   FileText,
@@ -16,22 +16,25 @@ import {
   Briefcase,
   CheckSquare,
   MessageSquare,
-} from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
-import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
+  AlertTriangle,
+  FileQuestion,
+  FilePlus2,
+} from "lucide-react"
+import Link from "next/link"
+import { useState } from "react"
+import { usePathname } from "next/navigation"
+import { Separator } from "../ui/separator"
+import { Button } from "../ui/button"
 
 interface SidebarProps {
-  role: "admin" | "developer";
-  userName: string;
-  userAvatar: string;
+  role: "admin" | "developer" | "client"
+  userName: string
+  userAvatar: string
 }
 
 const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
-  const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const adminLinks = [
     { href: "/admin", icon: <LayoutDashboard size={20} />, title: "Dashboard" },
@@ -56,7 +59,7 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
       title: "Rejected Projects",
     },
     { href: "/admin/team", icon: <Users size={20} />, title: "Team" },
-  ];
+  ]
 
   const developerLinks = [
     {
@@ -79,9 +82,35 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
       icon: <MessageSquare size={20} />,
       title: "Chat with Admin",
     },
-  ];
+  ]
 
-  const links = role === "admin" ? adminLinks : developerLinks;
+  const clientLinks = [
+    {
+      href: "/client",
+      icon: <LayoutDashboard size={20} />,
+      title: "Dashboard",
+    },
+    {
+      href: "/client/chat",
+      icon: <MessageSquare size={20} />,
+      title: "Support Chat",
+    },
+  ]
+
+  let links
+  switch (role) {
+    case "admin":
+      links = adminLinks
+      break
+    case "developer":
+      links = developerLinks
+      break
+    case "client":
+      links = clientLinks
+      break
+    default:
+      links = clientLinks
+  }
 
   return (
     <>
@@ -103,29 +132,22 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
           "fixed inset-y-0 left-0 z-40 w-64 bg-card transform transition-transform duration-300 ease-in-out",
           "border-r flex flex-col h-screen",
           "lg:static lg:translate-x-0", // Remain visible on large screens
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full" // Slide in/out on mobile
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full", // Slide in/out on mobile
         )}
       >
         <div className="p-6 flex items-center justify-between">
           <Link
-            href={role === "admin" ? "/admin" : "/developer"}
+            href={role === "admin" ? "/admin" : role === "developer" ? "/developer" : "/client"}
             className="flex items-center gap-2"
           >
             <div className="rounded-md bg-primary p-1">
               <Home className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className=" font-bold">
-              {role === "admin" ? "Admin" : "Developer"} Portal
-            </h1>
+            <h1 className="font-bold capitalize">{role} Portal</h1>
           </Link>
 
           {/* Close button for mobile */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileMenuOpen(false)}>
             <X className="h-6 w-6" />
           </Button>
         </div>
@@ -139,7 +161,7 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                  pathname === link.href && "bg-accent text-primary font-medium"
+                  pathname === link.href && "bg-accent text-primary font-medium",
                 )}
               >
                 {link.icon}
@@ -155,39 +177,29 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
           <div className="flex items-center gap-3 rounded-lg px-3 py-2">
             <div className="relative h-9 w-9">
               <img
-                src={userAvatar}
+                src={userAvatar || "/placeholder.svg"}
                 alt={userName}
                 className="absolute inset-0 h-full w-full rounded-full object-cover"
               />
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-medium">{userName}</span>
-              <span className="text-xs capitalize text-muted-foreground">
-                {role}
-              </span>
+              <span className="text-xs capitalize text-muted-foreground">{role}</span>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2">
             <Link
               href={
-                role === "admin" ? "/admin/settings" : "/developer/settings"
+                role === "admin" ? "/admin/settings" : role === "developer" ? "/developer/settings" : "/client/settings"
               }
             >
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start"
-              >
+              <Button variant="outline" size="sm" className="w-full justify-start">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </Button>
             </Link>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start"
-            >
+            <Button variant="outline" size="sm" className="w-full justify-start">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
@@ -197,13 +209,11 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
 
       {/* Overlay for mobile menu */}
       {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
+        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
       )}
     </>
-  );
-};
+  )
+}
 
-export default SideBar;
+export default SideBar
+

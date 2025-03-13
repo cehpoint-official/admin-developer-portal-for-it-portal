@@ -39,6 +39,9 @@ export function FinalStep() {
           Our team will review your submission and get back to you shortly.
         </p>
       </div>
+      <Link href={"/client"}>
+        <Button>Go to Dashboard</Button>
+      </Link>
 
       <div className="space-y-4 pt-4">
         <h3 className="font-medium">Project Summary</h3>
@@ -174,7 +177,7 @@ export function FinalStep() {
         onOpenChange={setShowQuotationPreview}
       >
         <DialogContent className="max-w-4xl h-[80vh]">
-        <DialogHeader>
+          <DialogHeader>
             <DialogTitle>Quotation Preview</DialogTitle>
           </DialogHeader>
 

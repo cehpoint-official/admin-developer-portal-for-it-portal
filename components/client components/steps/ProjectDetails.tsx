@@ -6,7 +6,8 @@ import { useProjectFormStore } from "@/lib/store/projectSteps";
 import { useEffect } from "react";
 
 export function ProjectDetails() {
-  const { formData, updateFormData, validationErrors,syncUserData  } = useProjectFormStore();
+  const { formData, updateFormData, validationErrors, syncUserData } =
+    useProjectFormStore();
   useEffect(() => {
     syncUserData();
   }, [syncUserData]);
@@ -26,6 +27,7 @@ export function ProjectDetails() {
           <Label htmlFor="projectName">Project Name</Label>
           <Input
             id="projectName"
+            suppressHydrationWarning={true}
             placeholder="Enter your project name (at least 10 characters)"
             value={formData.projectName}
             onChange={(e) => updateFormData({ projectName: e.target.value })}

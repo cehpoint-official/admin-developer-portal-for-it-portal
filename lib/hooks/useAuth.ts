@@ -40,7 +40,7 @@ export const useAuth = () => {
 
     try {
       await createUserAccount(email, password, name, phone);
-      router.push("/client/projects");
+      router.push("/client/create-project");
       return true;
     } catch (error: any) {
       setError(error.message);
@@ -87,7 +87,7 @@ export const useAuth = () => {
 
     try {
       await signInWithGoogle();
-      router.push("/projects"); // Google login is for clients only
+      router.push("/client"); // Google login is for clients only
       return true;
     } catch (error: any) {
       setError(error.message);

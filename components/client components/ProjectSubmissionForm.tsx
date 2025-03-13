@@ -107,8 +107,8 @@ function ProjectFormContent() {
               >
                 <Suggestions
                   onContinue={() => {
-                    nextStep()
-                    setShowSuggestions(false)
+                    nextStep();
+                    setShowSuggestions(false);
                   }}
                 />
               </motion.div>
@@ -141,12 +141,16 @@ function ProjectFormContent() {
           {step < 4 && (
             <div className="flex justify-end gap-4 mt-8">
               {step > 1 && (
-                <button onClick={prevStep} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+                <button
+                  onClick={prevStep}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                >
                   Back
                 </button>
               )}
               <button
                 onClick={handleNext}
+                suppressHydrationWarning={true}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
               >
                 {step === 3 ? "Submit" : "Next Step"}
@@ -156,7 +160,5 @@ function ProjectFormContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-

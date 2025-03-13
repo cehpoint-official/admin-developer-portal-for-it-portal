@@ -22,6 +22,7 @@ export interface ProjectFormData {
   // Cloudinary URLs
   cloudinaryDocumentationUrl: string | null;
   cloudinaryQuotationUrl: string | null;
+  projectBudget: number; // Add this new field
 }
 
 // Define validation schemas for each step
@@ -112,6 +113,7 @@ const defaultFormData: ProjectFormData = {
   clientPhoneNumber: "",
   cloudinaryDocumentationUrl: null,
   cloudinaryQuotationUrl: null,
+  projectBudget: 0, // Add this new field with default value
 };
 
 // Create the Zustand store
@@ -202,8 +204,9 @@ export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
     const seniorDevCost = formData.seniorDevelopers * 75000;
     const juniorDevCost = formData.juniorDevelopers * 30000;
     const uiUxCost = formData.uiUxDesigners * 8000;
-    const totalCost = seniorDevCost + juniorDevCost + uiUxCost;
-
+    const totalCost = seniorDevCost + juniorDevCost + uiUxCost + 50000;
+    // Set the projectBudget value to totalCost
+    get().updateFormData({ projectBudget: totalCost });
     // Generate HTML for the quotation
     const quotationHtml = `
  <html>

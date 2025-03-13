@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'developer';
+export type UserRole = 'admin' | 'developer' | 'client';
 
 export interface User {
   id: string;
@@ -22,20 +22,31 @@ export type ProjectStatus = 'pending' | 'in-progress' | 'completed' | 'rejected'
 
 export type Project = {
   id: string;
-  name: string;
+  projectName: string;
   clientName: string;
   clientEmail: string;
-  estimatedCost: number;
+  clientPhoneNumber: string;
+  projectBudget: number;
   finalCost?: number;
   status: ProjectStatus;
   deadline?: string;
   progress: number;
   submittedAt: string;
+  startDate: string;
+  endDate: string;
   rejectionReason?: string;
-  description: string;
-  overviewPdf?: string;
-  developerPdf?: string;
+  projectOverview: string;
+  cloudinaryQuotationUrl?: string;
+  cloudinaryDocumentationUrl?: string;
 };
+export type ProjectTask = {
+  id: string
+  title: string
+  description: string
+  assignedTo: string
+  status: "todo" | "in-progress" | "completed"
+  dueDate: any
+}
 
 export type TaskStatus = 'not-started' | 'in-progress' | 'completed';
 

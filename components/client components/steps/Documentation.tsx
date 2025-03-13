@@ -20,6 +20,9 @@ import {
   htmlToPdfBlobForQuotation,
 } from "@/lib/htmlToPdfConvertion";
 import { generateDocumentationFromGeminiAI } from "@/lib/gemini";
+// Import Firebase functions
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/firebase";
 
 export function Documentation() {
   const { formData, updateFormData, generateQuotation, nextStep } =
@@ -33,8 +36,11 @@ export function Documentation() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [hasImproved, setHasImproved] = useState(false);
+  const [isStoringInFirebase, setIsStoringInFirebase] = useState(false);
   // Ref to track if we've already uploaded to Cloudinary
   const hasUploadedToCloudinary = useRef(false);
+  // Ref to track if we've already stored in Firebase
+  const hasStoredInFirebase = useRef(false);
 
   // Handle file change with proper validation
   const handleFileChange = useCallback(
@@ -58,6 +64,7 @@ export function Documentation() {
         setFileError(null);
         setFileName(validation.data?.file.name || "");
         hasUploadedToCloudinary.current = false;
+        hasStoredInFirebase.current = false;
 
         // Reset related form fields
         updateFormData({
@@ -84,6 +91,7 @@ export function Documentation() {
 
     setIsImproving(true);
     hasUploadedToCloudinary.current = false;
+    hasStoredInFirebase.current = false;
 
     try {
       toast.info("Starting to improve your documentation...", {
@@ -140,6 +148,7 @@ export function Documentation() {
 
     setIsGenerating(true);
     hasUploadedToCloudinary.current = false;
+    hasStoredInFirebase.current = false;
 
     try {
       if (!formData.projectName || !formData.projectOverview) {
@@ -155,10 +164,6 @@ export function Documentation() {
         formData.projectOverview,
         formData.developmentAreas || []
       );
-
-      toast.info("Documentation Generation in Progress", {
-        description: "Almost there! Your documentation is being generated.",
-      });
 
       updateFormData({
         generatedDocumentation: generatedDoc,
@@ -185,11 +190,13 @@ export function Documentation() {
     isGenerating,
     updateFormData,
   ]);
+
   // Handle editor content changes
   const handleEditorChange = useCallback(
     (value: string) => {
       updateFormData({ generatedDocumentation: value });
       hasUploadedToCloudinary.current = false;
+      hasStoredInFirebase.current = false;
     },
     [updateFormData]
   );
@@ -198,6 +205,7 @@ export function Documentation() {
     (value: string) => {
       updateFormData({ improvedDocumentation: value });
       hasUploadedToCloudinary.current = false;
+      hasStoredInFirebase.current = false;
     },
     [updateFormData]
   );
@@ -232,10 +240,71 @@ export function Documentation() {
     formData.projectName,
   ]);
 
+  // Store project data in Firebase
+  const storeInFirebase = useCallback(
+    async (DocumentationUrl: string | null, QuotationUrl: string | null) => {
+      if (hasStoredInFirebase.current) return true;
+
+      setIsStoringInFirebase(true);
+      const storeToastId = toast.loading("Saving project data...");
+
+      try {
+        // Prepare project data for storage
+        const projectData = {
+          projectName: formData.projectName || "",
+          projectOverview: formData.projectOverview || "",
+          clientName: formData.clientName || "",
+          clientEmail: formData.clientEmail || "",
+          clientPhoneNumber: formData.clientPhoneNumber || "",
+          cloudinaryDocumentationUrl: DocumentationUrl || null,
+          cloudinaryQuotationUrl: QuotationUrl || null,
+          projectBudget: formData.projectBudget || 0,
+          status: "pending",
+          progress: 0,
+          submittedAt: serverTimestamp(),
+        };
+
+        // Add document to 'projects' collection
+        const docRef = await addDoc(collection(db, "Projects"), projectData);
+
+        toast.dismiss(storeToastId);
+        toast.success("Project Saved", {
+          description:
+            "Your project has been successfully saved to our system!",
+        });
+
+        hasStoredInFirebase.current = true;
+        return true;
+      } catch (error) {
+        console.error("Error storing project in Firebase:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to save project data";
+
+        toast.dismiss(storeToastId);
+        toast.error("Save Failed", { description: errorMessage });
+        return false;
+      } finally {
+        setIsStoringInFirebase(false);
+      }
+    },
+    [
+      formData.projectName,
+      formData.projectOverview,
+      formData.clientName,
+      formData.clientEmail,
+      formData.clientPhoneNumber,
+      formData.cloudinaryDocumentationUrl,
+      formData.cloudinaryQuotationUrl,
+      formData.projectBudget,
+    ]
+  );
+
   // Handle submission with proper error handling
   const handleSubmit = useCallback(async () => {
-    // Don't proceed if already uploaded
-    if (hasUploadedToCloudinary.current) {
+    // Check if we've already processed everything
+    if (hasUploadedToCloudinary.current && hasStoredInFirebase.current) {
       nextStep();
       return;
     }
@@ -244,58 +313,82 @@ export function Documentation() {
     setUploadProgress(0);
 
     try {
-      // Prepare PDF for upload
-      const pdfToUpload = await preparePdfForUpload();
+      // Upload step - if not already done
+      let uploadUrl = null;
+      let quotationUrl = null;
+      if (!hasUploadedToCloudinary.current) {
+        toast.loading("Uploading documentation...", {
+          description: "Please wait while we securely store your files.",
+        });
 
-      if (!pdfToUpload) {
-        throw new Error(
-          "No documentation to upload. Please upload a PDF or generate documentation first."
-        );
-      }
+        // Prepare PDF for upload
+        const pdfToUpload = await preparePdfForUpload();
 
-      // Upload the PDF to Cloudinary with progress tracking
-      const uploadUrl = await uploadToCloudinary(pdfToUpload, (progress) => {
-        setUploadProgress(Math.round(progress));
-      });
-
-      if (!uploadUrl) {
-        throw new Error("Upload to Cloudinary failed");
-      }
-
-      // Update form data with Cloudinary URL
-      updateFormData({ cloudinaryDocumentationUrl: uploadUrl });
-      hasUploadedToCloudinary.current = true;
-
-      // Upload quotation PDF if it exists
-      if (formData.quotationPdf) {
-        try {
-          const quotationBlob = await htmlToPdfBlobForQuotation(
-            formData.quotationPdf
+        if (!pdfToUpload) {
+          throw new Error(
+            "No documentation to upload. Please upload a PDF or generate documentation first."
           );
-          const quotationFile = new File(
-            [quotationBlob],
-            `${formData.projectName || "project"}-quotation.pdf`,
-            { type: "application/pdf" }
-          );
+        }
 
-          const quotationUrl = await uploadToCloudinary(quotationFile);
-
-          if (quotationUrl) {
-            updateFormData({ cloudinaryQuotationUrl: quotationUrl });
+        // Upload the PDF to Cloudinary with progress tracking
+        uploadUrl = await uploadToCloudinary(pdfToUpload, (progress) => {
+          setUploadProgress(Math.round(progress));
+          // Update progress toast for major milestones
+          if (progress === 25 || progress === 50 || progress === 75) {
+            toast.info(`Upload Progress: ${Math.round(progress)}%`, {
+              description:
+                "Please wait while we continue uploading your files.",
+            });
           }
-        } catch (quotationError) {
-          console.error("Error uploading quotation PDF:", quotationError);
-          // Continue with main flow even if quotation upload fails
-          toast.warning("Quotation Upload Warning", {
-            description:
-              "Quotation upload failed, but documentation was uploaded successfully.",
-          });
+        });
+
+        if (!uploadUrl) {
+          throw new Error("Upload to Cloudinary failed");
+        }
+
+        // Update form data with Cloudinary URL
+        updateFormData({ cloudinaryDocumentationUrl: uploadUrl });
+        hasUploadedToCloudinary.current = true;
+
+        // Upload quotation PDF if it exists
+        if (formData.quotationPdf) {
+          try {
+            const quotationBlob = await htmlToPdfBlobForQuotation(
+              formData.quotationPdf
+            );
+            const quotationFile = new File(
+              [quotationBlob],
+              `${formData.projectName || "project"}-quotation.pdf`,
+              { type: "application/pdf" }
+            );
+
+            quotationUrl = await uploadToCloudinary(quotationFile);
+
+            if (quotationUrl) {
+              updateFormData({ cloudinaryQuotationUrl: quotationUrl });
+            }
+          } catch (quotationError) {
+            console.error("Error uploading quotation PDF:", quotationError);
+            // Continue with main flow even if quotation upload fails
+            toast.warning("Quotation Upload Warning", {
+              description:
+                "Quotation upload failed, but documentation was uploaded successfully.",
+            });
+          }
+        }
+
+        toast.success("Files Uploaded", {
+          description: "Your documentation has been uploaded successfully.",
+        });
+      }
+
+      // Firebase storage step - if not already done
+      if (!hasStoredInFirebase.current) {
+        const firebaseSuccess = await storeInFirebase(uploadUrl, quotationUrl);
+        if (!firebaseSuccess) {
+          throw new Error("Failed to store project data in database");
         }
       }
-
-      toast.success("Documentation Uploaded", {
-        description: "Your documentation has been uploaded successfully.",
-      });
 
       // Move to the next step
       nextStep();
@@ -305,7 +398,7 @@ export function Documentation() {
         error instanceof Error
           ? error.message
           : "Upload failed. Please try again.";
-      toast.error("Upload Failed", { description: errorMessage });
+      toast.error("Submission Failed", { description: errorMessage });
     } finally {
       setIsUploading(false);
     }
@@ -315,11 +408,13 @@ export function Documentation() {
     updateFormData,
     formData.quotationPdf,
     formData.projectName,
+    storeInFirebase,
   ]);
 
   // Determine if the submit button should be disabled
   const isSubmitDisabled =
     isUploading ||
+    isStoringInFirebase ||
     (!formData.documentationFile &&
       !formData.generatedDocumentation &&
       !formData.improvedDocumentation);
@@ -329,17 +424,21 @@ export function Documentation() {
     if (isUploading) {
       return `Uploading... ${uploadProgress}%`;
     }
-    return hasUploadedToCloudinary.current
+    if (isStoringInFirebase) {
+      return "Saving project...";
+    }
+    return hasUploadedToCloudinary.current && hasStoredInFirebase.current
       ? "Proceed to Next Step"
-      : "Upload PDF";
+      : "Submit Project";
   };
+
   // Generate quotation when reaching this step
   useEffect(() => {
     // Generate quotation only once when component mounts
     if (!formData.quotationPdf) {
       generateQuotation();
     }
-  }, []); // Empty dependency array to run only once
+  }, [generateQuotation, formData.quotationPdf]); // Added proper dependencies
 
   return (
     <div className="space-y-6">
@@ -483,6 +582,11 @@ export function Documentation() {
           className="gap-2"
         >
           {isUploading ? (
+            <>
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              {getSubmitButtonText()}
+            </>
+          ) : isStoringInFirebase ? (
             <>
               <RefreshCw className="h-4 w-4 animate-spin" />
               {getSubmitButtonText()}
