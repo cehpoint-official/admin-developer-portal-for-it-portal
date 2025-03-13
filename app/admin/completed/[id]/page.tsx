@@ -144,7 +144,7 @@ export default function CompletedProjectDetail({
                   </p>
                 </div>
                 <Badge
-                  variant="success"
+                 // variant="success"
                   className="text-sm px-3 py-1 bg-green-100 text-green-800 rounded-full flex items-center"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
