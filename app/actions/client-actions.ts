@@ -1,4 +1,4 @@
-"use server";
+
 import { getAllProjects, getClientProjects, getProjectById } from "@/lib/firebase/client";
 import { revalidatePath } from "next/cache";
 

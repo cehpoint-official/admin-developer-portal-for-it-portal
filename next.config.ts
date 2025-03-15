@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   },
   images: { unoptimized: true },
   trailingSlash: true, // Recommended
+  
 };
 
 export default nextConfig;

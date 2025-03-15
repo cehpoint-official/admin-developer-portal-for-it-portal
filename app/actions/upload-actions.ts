@@ -3,7 +3,6 @@
 import { extractTextFromPdf } from "@/lib/langchain";
 import { generateImprovedDocumentationFromGeminiAI } from "@/lib/gemini";
 
-
 interface DocumentationResult {
   success: boolean;
   message: string;
@@ -41,13 +40,13 @@ export async function generateDeveloperDocumentationFromPdf(
   try {
     // Step 1: Extract text from PDF
     const extractedText = await extractTextFromPdf(uploadResponse);
-    
+
     // Step 2: Process the extracted text - convert to array, sanitize, and filter
     const processedTextLines = extractedText
-      .split('\n')
-      .map(line => sanitizeText(line))
-      .filter(line => line.length > 0); // Remove empty lines
-    
+      .split("\n")
+      .map((line) => sanitizeText(line))
+      .filter((line) => line.length > 0); // Remove empty lines
+
     if (processedTextLines.length === 0) {
       return {
         success: false,
@@ -55,13 +54,14 @@ export async function generateDeveloperDocumentationFromPdf(
         data: null,
       };
     }
-    
+
     // Step 3: Convert array to a single paragraph string
-    const extractedTextParagraph = processedTextLines.join(' ');
-    
+    const extractedTextParagraph = processedTextLines.join(" ");
+
     // Step 4: Generate improved documentation using the paragraph text
-    const improvedDocumentation = await generateImprovedDocumentationFromGeminiAI(extractedTextParagraph);
-    
+    const improvedDocumentation =
+      await generateImprovedDocumentationFromGeminiAI(extractedTextParagraph);
+
     if (!improvedDocumentation) {
       return {
         success: false,
@@ -69,7 +69,7 @@ export async function generateDeveloperDocumentationFromPdf(
         data: null,
       };
     }
-    
+
     // Success! Return the generated documentation
     return {
       success: true,
@@ -80,12 +80,11 @@ export async function generateDeveloperDocumentationFromPdf(
     };
   } catch (error) {
     // Comprehensive error handling
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : "An unexpected error occurred";
-    
+    const errorMessage =
+      error instanceof Error ? error.message : "An unexpected error occurred";
+
     console.error("Documentation generation failed:", errorMessage);
-    
+
     return {
       success: false,
       message: `Documentation generation failed: ${errorMessage}`,
