@@ -1,17 +1,15 @@
 "use client";
 
-import React, { use } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  CalendarIcon,
   FileText,
   RefreshCw,
   User,
   Mail,
   Phone,
   DollarSign,
-  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,60 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Project } from "@/lib/types";
 
-const rejectedProjects = [
-  {
-    id: "rej-001",
-    name: "E-commerce Platform",
-    clientName: "Fashion Trends Inc.",
-    clientEmail: "contact@fashiontrends.com",
-    clientPhone: "+1 (555) 123-4567",
-    rejectedReason: "Technical requirements beyond our current capabilities",
-    rejectedDate: "2023-05-15",
-    budget: 15000,
-    description:
-      "A comprehensive e-commerce platform with integrated AR features for virtual try-ons, real-time inventory tracking, and AI-powered product recommendations.",
-    status: "rejected",
-  },
-  {
-    id: "rej-002",
-    name: "Real-Time Analytics Dashboard",
-    clientName: "Data Insights Co.",
-    clientEmail: "projects@datainsights.co",
-    clientPhone: "+1 (555) 987-6543",
-    rejectedReason: "Timeline too aggressive for current team availability",
-    rejectedDate: "2023-06-22",
-    budget: 12000,
-    description:
-      "An analytics dashboard that provides real-time insights from multiple data sources, with customizable widgets and automated reporting features.",
-    status: "rejected",
-  },
-  {
-    id: "rej-003",
-    name: "Mobile Payment Gateway",
-    clientName: "FinTech Solutions",
-    clientEmail: "dev@fintechsolutions.io",
-    clientPhone: "+1 (555) 246-8101",
-    rejectedReason: "Budget not sufficient for requested features",
-    rejectedDate: "2023-07-03",
-    budget: 8000,
-    description:
-      "A secure mobile payment gateway with biometric authentication, multi-currency support, and blockchain-based transaction verification.",
-    status: "rejected",
-  },
-  {
-    id: "rej-004",
-    name: "AI Content Generator",
-    clientName: "Creative Media LLC",
-    clientEmail: "info@creativemedia.co",
-    clientPhone: "+1 (555) 369-2587",
-    rejectedReason: "Technical expertise required not available",
-    rejectedDate: "2023-08-10",
-    budget: 20000,
-    description:
-      "An AI-powered platform that generates high-quality content for marketing, blogs, and social media, with SEO optimization and sentiment analysis.",
-    status: "rejected",
-  },
-];
+
 interface ProjectDetailClientProps {
   project: Project | null;
   error: string | null;
@@ -138,7 +83,7 @@ export default function RejectedProjectDetailClient({
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-2xl font-bold">
-                    {project.name}
+                    {project.projectName}
                   </CardTitle>
                   <CardDescription>
                     Client: {project.clientName}
@@ -154,24 +99,24 @@ export default function RejectedProjectDetailClient({
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
                   Project Description
                 </h3>
-                <p>{project.description}</p>
+                <p>{project.projectOverview}</p>
               </div>
 
               <Separator />
 
-              <div>
+              {/* <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
                   Rejection Reason
                 </h3>
                 <p className="text-destructive">{project.rejectedReason}</p>
-              </div>
+              </div> */}
 
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
                   Rejected on {project.rejectedDate}
                 </span>
-              </div>
+              </div> */}
             </CardContent>
             <CardFooter className="justify-end">
               <Button
@@ -206,11 +151,11 @@ export default function RejectedProjectDetailClient({
               </div>
               <div className="flex items-center">
                 <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>{project.clientPhone}</span>
+                <span>{project.clientPhoneNumber}</span>
               </div>
               <div className="flex items-center">
                 <DollarSign className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>${project.budget.toLocaleString()}</span>
+                <span>${project.projectBudget.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
