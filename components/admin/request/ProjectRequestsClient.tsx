@@ -8,33 +8,19 @@ import { Input } from "@/components/ui/input";
 import ProjectTable from "@/components/ui-custom/ProjectTable";
 import Link from "next/link";
 import { Project } from "@/lib/types";
-import { getAllProjectsRequest } from "@/lib/firebase/admin";
 
-
-export default function ProjectRequestsClient() {
+export default function ProjectRequestsClient({
+  projects,
+}: {
+  projects: Project[] | undefined;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchProjects() {
-      try {
-        const projects = await getAllProjectsRequest();
-        setProjects(projects);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchProjects();
-  }, []);
-  const pendingProjects = projects.filter(
+  const pendingProjects = projects?.filter(
     (project) => project.status === "pending"
   );
 
-  const filteredProjects = pendingProjects.filter(
+  const filteredProjects = pendingProjects?.filter(
     (project) =>
       project.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.clientName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -67,7 +53,7 @@ export default function ProjectRequestsClient() {
       </div>
       <div className="rounded-lg overflow-hidden glassmorphism shadow-md">
         <ProjectTable
-          data={filteredProjects}
+          data={filteredProjects || []}
           columns={[
             { header: "Project Name", accessor: "projectName" },
             { header: "Client", accessor: "clientName" },
@@ -100,12 +86,11 @@ export default function ProjectRequestsClient() {
             },
           ]}
           itemsPerPage={5}
-          loading={loading}
           emptyMessage="No pending project requests found"
         />
       </div>
 
-      {filteredProjects.length === 0 && searchQuery && (
+      {filteredProjects?.length === 0 && searchQuery && (
         <div className="mt-8 text-center">
           <p className="text-muted-foreground">
             No projects found matching "{searchQuery}"
