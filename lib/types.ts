@@ -1,11 +1,12 @@
 export type UserRole = 'admin' | 'developer' | 'client';
 
 export interface User {
-  id: string;
-  name: string;
-  email: string;
+  uid: string;
+  email: string | null;
+  name: string | null;
+  phone?: string | null;
   role: UserRole;
-  avatar: string;
+  avatar: string | null;
 }
 
 export interface Client {

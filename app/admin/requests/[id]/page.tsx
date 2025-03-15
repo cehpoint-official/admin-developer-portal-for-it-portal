@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Calendar,
@@ -34,7 +34,10 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getProjectById } from "@/lib/data";
+
+import { Project } from "@/lib/types";
+import { getProjectById } from "@/lib/firebase/admin";
+
 
 interface ProjectRequestDetailProps {
   params: Promise<{
@@ -48,21 +51,51 @@ const ProjectRequestDetail = ({ params }: ProjectRequestDetailProps) => {
   const router = useRouter();
   //const { toast } = useToast();
 
-  const project = getProjectById(id || "");
-
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionForm, setShowRejectionForm] = useState(false);
-  const [finalBudget, setFinalBudget] = useState(
-    project?.estimatedCost.toString() || ""
-  );
+  const [project, setProject] = useState<Project>();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!project) {
+  useEffect(() => {
+    async function fetchProject() {
+      try {
+        if (typeof id !== "string") {
+          throw new Error("Invalid project ID");
+        }
+
+        const projectData = await getProjectById(id);
+        console.log(projectData);
+
+        setProject(projectData);
+      } catch (err) {
+        console.error("Error fetching project:", err);
+        setError("Failed to load project details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProject();
+  }, [id]);
+  console.log(project);
+
+  const [finalBudget, setFinalBudget] = useState(project?.projectBudget || "");
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading project details...</p>
+      </div>
+    );
+  }
+
+  if (error || !project) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12">
-        <h2 className="text-2xl font-semibold mb-2">Project Not Found</h2>
-        <p className="text-muted-foreground mb-6">
-          The requested project could not be found.
+        <p className="text-destructive font-medium">
+          {error || "Project not found"}
         </p>
         <Button onClick={() => router.push("/admin/requests")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -137,7 +170,9 @@ const ProjectRequestDetail = ({ params }: ProjectRequestDetailProps) => {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Requests
         </Button>
-        <h1 className="text-3xl font-bold text-primary-700">{project.name}</h1>
+        <h1 className="text-3xl font-bold text-primary-700">
+          {project.projectName}
+        </h1>
         <p className="text-muted-foreground mt-1">
           Submitted on {format(new Date(project.submittedAt), "MMMM dd, yyyy")}
         </p>
@@ -150,7 +185,7 @@ const ProjectRequestDetail = ({ params }: ProjectRequestDetailProps) => {
               <CardTitle className="text-xl">Project Overview</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4 leading-relaxed">{project.description}</p>
+              <p className="mb-4 leading-relaxed">{project.projectOverview}</p>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-6">
                 <Button className="flex items-center gap-2 w-full sm:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
@@ -250,7 +285,7 @@ const ProjectRequestDetail = ({ params }: ProjectRequestDetailProps) => {
                   <div className="flex items-center gap-2 mt-1">
                     <IndianRupee className="h-5 w-5 text-green-600" />
                     <p className="text-xl font-bold">
-                      {project.estimatedCost.toLocaleString()}
+                      {project.projectBudget.toLocaleString()}
                     </p>
                   </div>
                 </div>

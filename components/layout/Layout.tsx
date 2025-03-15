@@ -3,12 +3,14 @@ import Header from "./Header";
 import SideBar from "./Sidebar";
 
 interface LayoutProps {
-  user: User;
+  user: User ;
   title: string;
   description?: string;
   children: React.ReactNode;
 }
 const Layout = ({ user, title, description, children }: LayoutProps) => {
+
+
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="hidden md:block ">

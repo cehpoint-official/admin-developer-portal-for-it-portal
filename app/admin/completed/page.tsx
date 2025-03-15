@@ -1,21 +1,40 @@
-"use client"
-import React, { useState } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Download, Star, ExternalLink } from "lucide-react";
 import ProjectTable from "@/components/ui-custom/ProjectTable";
 import { motion } from "framer-motion";
-import { getCompletedProjects } from "@/lib/data";
 import Link from "next/link";
+import { Project } from "@/lib/types";
+import { getAllProjectsRequest } from "@/lib/firebase/admin";
 
 const CompletedProjects = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const completedProjects = getCompletedProjects();
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const projects = await getAllProjectsRequest();
+        setProjects(projects);
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProjects();
+  }, []);
+  const completedProjects = projects.filter(
+    (project) => project.status === "completed"
+  );
 
   const filteredProjects = completedProjects.filter(
     (project) =>
-      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.clientName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -114,10 +133,7 @@ const CompletedProjects = () => {
               cell: (row) => (
                 <Link href={`/admin/completed/${row.id}`}>
                   {" "}
-                  <Button
-                    size="sm"
-                    className="flex items-center gap-1"
-                  >
+                  <Button size="sm" className="flex items-center gap-1">
                     <ExternalLink className="h-4 w-4 mr-1" />
                     View Details
                   </Button>
@@ -125,6 +141,8 @@ const CompletedProjects = () => {
               ),
             },
           ]}
+          itemsPerPage={5}
+          loading={loading}
           emptyMessage="No completed projects found"
         />
       </div>

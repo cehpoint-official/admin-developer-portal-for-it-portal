@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { User as FirebaseUser } from 'firebase/auth';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { User as FirebaseUser } from "firebase/auth";
 
 // Define user roles
-export type UserRole = 'client' | 'admin' | 'developer';
+export type UserRole = "client" | "admin" | "developer";
 
 // Define user profile structure
 export interface UserProfile {
@@ -12,6 +12,7 @@ export interface UserProfile {
   name: string | null;
   phone?: string | null;
   role: UserRole;
+  avatar: string | null;
   createdAt: number;
   lastLogin: number;
 }
@@ -41,27 +42,29 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       error: null,
 
-      setUser: (user) => set((state) => ({ 
-        user, 
-        isAuthenticated: !!user,
-        isLoading: false 
-      })),
-      
+      setUser: (user) =>
+        set((state) => ({
+          user,
+          isAuthenticated: !!user,
+          isLoading: false,
+        })),
+
       setProfile: (profile) => set({ profile }),
-      
+
       setLoading: (isLoading) => set({ isLoading }),
-      
+
       setError: (error) => set({ error }),
-      
-      resetAuth: () => set({ 
-        user: null, 
-        profile: null, 
-        isAuthenticated: false, 
-        error: null 
-      }),
+
+      resetAuth: () =>
+        set({
+          user: null,
+          profile: null,
+          isAuthenticated: false,
+          error: null,
+        }),
     }),
     {
-      name: 'auth-storage', 
+      name: "auth-storage",
     }
   )
 );

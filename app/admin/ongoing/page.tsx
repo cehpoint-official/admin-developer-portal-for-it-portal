@@ -27,7 +27,7 @@ export default function OngoingProjects() {
 
   const filteredProjects = ongoingProjects.filter(
     (project) =>
-      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.clientName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

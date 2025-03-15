@@ -1,8 +1,9 @@
 "use client";
 import Layout from "@/components/layout/Layout";
-import { users } from "@/lib/data";
 import type React from "react";
 import { usePathname } from "next/navigation"; // Assuming you're using Next.js
+import { useAuthStore } from "@/lib/store/userStore";
+import { User } from "@/lib/types";
 
 
 interface PageMetadata {
@@ -52,7 +53,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
+  const { profile } = useAuthStore();
   // Get metadata for current path or use defaults
   const metadata = pageMetadata[pathname] || {
     title: "Admin Dashboard",
@@ -61,7 +62,7 @@ export default function AdminLayout({
 
   return (
     <Layout
-      user={users[0]}
+      user={profile || {} as User}
       title={metadata.title}
       description={metadata.description}
     >

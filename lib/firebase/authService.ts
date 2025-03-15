@@ -34,6 +34,7 @@ export const createUserAccount = async (
       email: user.email,
       name: name,
       phone: phone,
+      avatar: null,
       role: "client", // Only clients can sign up
       createdAt: Date.now(),
       lastLogin: Date.now(),
@@ -127,6 +128,7 @@ export const signInWithGoogle = async (): Promise<UserProfile> => {
         uid: user.uid,
         email: user.email,
         name: user.displayName,
+        avatar: user.photoURL || null,
         phone: user.phoneNumber,
         role: "client", // Google sign-in is for clients only
         createdAt: Date.now(),

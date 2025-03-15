@@ -11,7 +11,7 @@ import { Project } from "@/lib/types";
 import { getAllProjectsRequest } from "@/lib/firebase/admin";
 
 
-export default function ProjectRequests() {
+export default function ProjectRequestsClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);

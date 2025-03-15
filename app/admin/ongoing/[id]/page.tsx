@@ -72,7 +72,7 @@ export default function OngoingProjectDetail() {
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">{project.name}</h1>
+            <h1 className="text-3xl font-bold">{project.projectName}</h1>
             <p className="text-muted-foreground mt-1">
               Client: {project.clientName}
             </p>
@@ -117,7 +117,7 @@ export default function OngoingProjectDetail() {
           </CardHeader>
           <CardContent>
             <p className="mb-6 text-muted-foreground leading-relaxed">
-              {project.description}
+              {project.projectOverview}
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
@@ -189,7 +189,7 @@ export default function OngoingProjectDetail() {
                 Estimated Cost
               </p>
               <p className="text-2xl font-bold">
-                ${project.estimatedCost.toLocaleString()}
+                ${project.projectBudget.toLocaleString()}
               </p>
             </div>
 

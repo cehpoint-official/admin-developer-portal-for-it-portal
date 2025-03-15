@@ -25,7 +25,6 @@ import { UserRole } from "@/lib/store/userStore";
 export default function AuthPage() {
   const { signUp, login, googleLogin, isLoading, error } = useAuth();
 
-
   const [showStaffLogin, setShowStaffLogin] = useState(false);
 
   // Client signup form state
@@ -104,12 +103,11 @@ export default function AuthPage() {
       }
     } catch (error) {
       console.error("Login error:", error);
-    } 
+    }
   };
 
   // Handle Google sign-in
   const handleGoogleSignIn = async () => {
-
     try {
       const success = await googleLogin();
 

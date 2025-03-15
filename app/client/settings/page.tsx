@@ -19,7 +19,7 @@ import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import { User } from "@/lib/types";
 const mockUser: User = {
-  id: "client123",
+  uid: "client123",
   name: "John Doe",
   email: "tusharbhowal4211@gmail.com",
   role: "client",

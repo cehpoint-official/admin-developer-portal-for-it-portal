@@ -3,6 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { users } from "@/lib/data";
 import type React from "react";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/lib/store/userStore";
 
 interface PageMetadata {
   title: string;
@@ -43,7 +44,7 @@ export default function DeveloperLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  
+  const { profile } = useAuthStore()
   const metadata = pageMetadata[pathname] || {
     title: "Developer Dashboard",
     description: "Track your assigned projects and progress"
