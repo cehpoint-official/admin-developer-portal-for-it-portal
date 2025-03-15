@@ -317,9 +317,9 @@ export function Documentation() {
       let uploadUrl = null;
       let quotationUrl = null;
       if (!hasUploadedToCloudinary.current) {
-        toast.loading("Uploading documentation...", {
-          description: "Please wait while we securely store your files.",
-        });
+        // toast.loading("Uploading documentation...", {
+        //   description: "Please wait while we securely store your files.",
+        // });
 
         // Prepare PDF for upload
         const pdfToUpload = await preparePdfForUpload();
