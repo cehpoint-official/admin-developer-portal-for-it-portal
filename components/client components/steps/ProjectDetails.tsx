@@ -11,13 +11,13 @@ export function ProjectDetails() {
   useEffect(() => {
     syncUserData();
   }, [syncUserData]);
-  console.log(formData);
+
 
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm text-muted-foreground">Step 1/4</p>
-        <h2 className="text-2xl font-bold text-foreground">
+        <h2 className="sm:text-2xl font-bold text-foreground">
           Tell Us About Your Project
         </h2>
       </div>

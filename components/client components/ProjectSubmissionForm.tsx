@@ -153,7 +153,7 @@ function ProjectFormContent() {
                 suppressHydrationWarning={true}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
               >
-                {step === 3 ? "Submit" : "Next Step"}
+                {"Next Step"}
               </button>
             </div>
           )}

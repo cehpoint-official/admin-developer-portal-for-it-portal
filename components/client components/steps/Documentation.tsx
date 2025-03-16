@@ -444,15 +444,19 @@ export function Documentation() {
     <div className="space-y-6">
       <div>
         <p className="text-sm text-muted-foreground">Step 3/4</p>
-        <h2 className="text-2xl font-bold text-foreground">
+        <h2 className="sm:text-2xl font-bold text-foreground">
           Share Your Documentation
         </h2>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 w-full">
-          <TabsTrigger value="upload">Upload Document</TabsTrigger>
-          <TabsTrigger value="generate">Generate Document</TabsTrigger>
+        <TabsList className="flex flex-col sm:grid sm:grid-cols-2 w-full h-[20]">
+          <TabsTrigger value="upload" className="flex-1">
+            Upload Document
+          </TabsTrigger>
+          <TabsTrigger value="generate" className="flex-1">
+            Generate Document
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="upload" className="space-y-4 pt-4">

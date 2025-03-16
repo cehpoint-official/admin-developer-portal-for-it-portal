@@ -43,12 +43,12 @@ export function DevelopmentPreferences() {
     <div className="space-y-6">
       <div>
         <p className="text-sm text-muted-foreground">Step 2/4</p>
-        <h2 className="text-2xl font-bold text-foreground">Development Preferences and Team Size Selection</h2>
+        <h2 className="sm:text-2xl font-bold text-foreground">Development Preferences and Team Size Selection</h2>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="developmentAreas">
+          <Label htmlFor="developmentAreas" className="text-xs sm:text-sm">
             Development Areas
             <span className="ml-1 text-xs text-muted-foreground">
               (e.g., Web App, Mobile App, Dashboard, Landing Page)
@@ -138,8 +138,8 @@ function DeveloperTypeSelector({ title, cost, tooltip, value, onChange }: Develo
     <div className="flex items-center justify-between p-3 border rounded-md">
       <div className="flex items-center">
         <div>
-          <h4 className="font-medium">{title}</h4>
-          <p className="text-sm text-muted-foreground">{cost}</p>
+          <h4 className="text-sm font-medium">{title}</h4>
+          <p className="text-xs text-muted-foreground">{cost}</p>
         </div>
 
         <TooltipProvider>

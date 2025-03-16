@@ -209,171 +209,326 @@ export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
     get().updateFormData({ projectBudget: totalCost });
     // Generate HTML for the quotation
     const quotationHtml = `
- <html>
-  <head>
-    <style>
-      body { 
-        font-family: Arial, sans-serif; 
-        margin: 0; 
-        padding: 0;
-        color: #000; /* Black text */
-        background-color: #fff; /* White background */
-      }
-      .container {
-        width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        border: 1px solid #ccc; /* Light gray border */
-      }
-      h2 {
-        font-size: 24px;
-        font-weight: bold;
-        color: #007bff; /* Blue color for headings */
-        margin: 0 0 20px 0;
-      }
-      .section {
-        margin-top: 20px;
-      }
-      .section-header {
-        background-color: #f8f9fa; /* Light gray background */
-        padding: 10px;
-        border-bottom: 1px solid #ddd; /* Gray border */
-      }
-      .section-header h4 {
-        font-weight: bold;
-        color: #333; /* Dark gray text */
-        margin: 0;
-      }
-      .section-content {
-        padding: 10px;
-      }
-      .info-line {
-        font-weight: bold;
-        color: #333; /* Dark gray text */
-        margin: 5px 0;
-      }
-      .info-line span {
-        font-weight: normal;
-        color: #555; /* Gray text */
-        font-size: 14px;
-      }
-      table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-      }
-      th {
-        background-color: #f8f9fa; /* Light gray background */
-        padding: 8px;
-        text-align: left;
-        border: 1px solid #ddd; /* Gray border */
-      }
-      td {
-        padding: 8px;
-        border: 1px solid #ddd; /* Gray border */
-      }
-      .total-row {
-        border-bottom: 2px solid #333; /* Dark gray border */
-      }
-      .font-bold {
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>Quotation</h2>
-      
-      <div class="section">
-        <div class="section-header">
-          <h4>CLIENT INFORMATION :</h4>
-        </div> 
-        <div class="section-content">
-          <p class="info-line">Name : <span>${formData.clientName}</span></p>
-          <p class="info-line">Email : <span>${formData.clientEmail}</span></p>
-          <p class="info-line">Phone : <span>${
-            formData.clientPhoneNumber
-          }</span></p>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --text-color: #1f2937;
+      --border-color: #e5e7eb;
+      --background-light: #f3f4f6;
+    }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border-radius: 8px;
+      background-color: white;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      padding-bottom: 2rem;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 2rem;
+    }
+
+    .company-info {
+      flex: 1;
+    }
+
+    .company-name {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .company-details {
+      margin-top: 1rem;
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+
+    .quotation-title {
+      text-align: right;
+      flex: 1;
+    }
+
+    .quotation-title h1 {
+      font-size: 2.5rem;
+      color: var(--secondary-color);
+      margin: 0;
+      font-weight: 800;
+    }
+
+    .quotation-date {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+
+    .section {
+      margin: 2rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      background-color: var(--background-light);
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-header h3 {
+      margin: 0;
+      color: var(--primary-color);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .section-content {
+      padding: 1.5rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .info-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+      color: var(--text-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+    }
+
+    th {
+      background-color: var(--background-light);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--primary-color);
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .total-section {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 2px solid var(--border-color);
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 0.5rem 0;
+      font-weight: 600;
+    }
+
+    .total-label {
+      margin-right: 2rem;
+      color: var(--primary-color);
+    }
+
+    .total-amount {
+      font-size: 1.25rem;
+      color: var(--secondary-color);
+    }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="company-info">
+        <h1 class="company-name">CEHPOINT</h1>
+        <div class="company-details">
+          <p>services.cehpoint.co.in</p>
+          <p>Email: info@cehpoint.co.in</p>
+          <p>Corporate number (IVR): +91 33 6902 9331</p>
         </div>
       </div>
-      
-      <div class="section">
+      <div class="quotation-title">
+        <h1>QUOTATION</h1>
+        <div class="quotation-date">Date: ${new Date().toLocaleDateString(
+          "en-US",
+          {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }
+        )}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Client Information</h3>
+      </div>
+      <div class="section-content">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Name</div>
+            <div class="info-value">${formData.clientName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">${formData.clientEmail}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Phone</div>
+            <div class="info-value">${formData.clientPhoneNumber}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Project Details</h3>
+      </div>
+      <div class="section-content">
+        <div class="info-item">
+          <div class="info-label">Project Name</div>
+          <div class="info-value">${formData.projectName}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Development Areas</div>
+          <div class="info-value">${formData.developmentAreas.join(", ")}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Project Overview</div>
+          <div class="info-value">${formData.projectOverview}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Cost Breakdown</h3>
+      </div>
+      <div class="section-content">
         <table>
-          <tbody>
+          <thead>
             <tr>
-              <th>Description</th>
+              <th>Resource</th>
               <th>Quantity</th>
-              <th>Price</th>
-              <th>Total</th>
+              <th>Rate (₹)</th>
+              <th>Total (₹)</th>
             </tr>
+          </thead>
+          <tbody>
             ${
               formData.seniorDevelopers > 0
-                ? `<tr>
-                    <td class="font-bold">Senior Developer</td>
-                    <td>${formData.seniorDevelopers}</td>
-                    <td>Rs 70000</td>
-                    <td>${seniorDevCost}</td>
-                  </tr>`
+                ? `
+            <tr>
+              <td>Senior Developer</td>
+              <td>${formData.seniorDevelopers}</td>
+              <td>75,000</td>
+              <td>${seniorDevCost.toLocaleString("en-IN")}</td>
+            </tr>
+            `
                 : ""
             }
             ${
               formData.juniorDevelopers > 0
-                ? `<tr>
-                    <td class="font-bold">Junior Developer</td>
-                    <td>${formData.juniorDevelopers}</td>
-                    <td>Rs 40000</td>
-                    <td>${juniorDevCost}</td>
-                  </tr>`
+                ? `
+            <tr>
+              <td>Junior Developer</td>
+              <td>${formData.juniorDevelopers}</td>
+              <td>30,000</td>
+              <td>${juniorDevCost.toLocaleString("en-IN")}</td>
+            </tr>
+            `
                 : ""
             }
             ${
               formData.uiUxDesigners > 0
-                ? `<tr>
-                    <td class="font-bold">UI/UX Designer</td>
-                    <td>${formData.uiUxDesigners}</td>
-                    <td>Rs 8000</td>
-                    <td>${uiUxCost}</td>
-                  </tr>`
+                ? `
+            <tr>
+              <td>UI/UX Designer</td>
+              <td>${formData.uiUxDesigners}</td>
+              <td>8,000</td>
+              <td>${uiUxCost.toLocaleString("en-IN")}</td>
+            </tr>
+            `
                 : ""
             }
-            <tr class="total-row">
-              <td class="font-bold">Others (Project management)</td>
-              <td></td>
-              <td></td>
-              <td>Rs 50000</td>
-            </tr>
-            <tr class="total-row">
-              <td class="font-bold">Grand total</td>
-              <td></td>
-              <td></td>
-              <td>Rs ${totalCost}</td>
+            <tr>
+              <td>Project Management & Infrastructure</td>
+              <td>1</td>
+              <td>50,000</td>
+              <td>50,000</td>
             </tr>
           </tbody>
         </table>
-      </div>
-      
-      <div class="section">
-        <div class="section-header">
-          <h4>PROJECT INFORMATION :</h4>
-        </div>
-        <div class="section-content">
-          <p class="info-line">
-            Project Name : <span>${formData.projectName}</span>
-          </p>
-          <p class="info-line">
-            Project Overview : <span>${formData.projectOverview}</span>
-          </p>
-          <p class="info-line">
-            Development Areas : <span>${formData.developmentAreas.join(
-              ", "
+
+        <div class="total-section">
+          <div class="total-row">
+            <span class="total-label">Total Amount</span>
+            <span class="total-amount">₹ ${totalCost.toLocaleString(
+              "en-IN"
             )}</span>
-          </p>
+          </div>
         </div>
       </div>
     </div>
-  </body>
+
+    <div class="footer">
+      <p>Thank you for choosing CEHPOINT. We look forward to working with you!</p>
+      <p>This quotation is valid for 30 days from the date of issue.</p>
+    </div>
+  </div>
+</body>
 </html>
-  `;
+    `;
 
     get().updateFormData({ quotationPdf: quotationHtml });
   },

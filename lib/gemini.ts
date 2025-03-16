@@ -209,7 +209,7 @@ export async function generateImprovedDocumentationFromGeminiAI(
     const response = await result.response.text();
 
     // Remove any unnecessary AI-generated intro
-    const cleanedResponse = response.replace(/^.*?\n\n##/, "##");
+    const cleanedResponse = response.replace(/^```html|```$/m, "");
 
     return cleanedResponse;
   } catch (error) {
