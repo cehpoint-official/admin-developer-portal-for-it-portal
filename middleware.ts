@@ -26,7 +26,9 @@ export async function middleware(request: NextRequest) {
 
   if (!token) {
     console.log("No token found, redirecting to /");
-    return NextResponse.redirect(new URL("/", request.url));
+    const response = NextResponse.redirect(new URL("/", request.url));
+    response.cookies.delete("firebaseToken"); // Ensure cookie is deleted
+    return response;
   }
 
   try {
@@ -47,10 +49,11 @@ export async function middleware(request: NextRequest) {
 
     if (requiredRole && role !== requiredRole) {
       console.log(`Role mismatch: ${role} != ${requiredRole}, redirecting to /`);
-      return NextResponse.redirect(new URL("/", request.url));
+      const response = NextResponse.redirect(new URL("/", request.url));
+      response.cookies.delete("firebaseToken");
+      return response;
     }
 
-    // Only set cookie if it’s from URL and not already in cookies
     if (urlToken && !cookieToken) {
       console.log("Setting firebaseToken cookie server-side:", urlToken);
       const response = NextResponse.next();
@@ -59,7 +62,7 @@ export async function middleware(request: NextRequest) {
         secure: true,
         sameSite: "strict",
         path: "/",
-        maxAge: 3600, // 1 hour
+        maxAge: 3600,
       });
       return response;
     }
@@ -70,7 +73,7 @@ export async function middleware(request: NextRequest) {
     console.error("Middleware auth error:", error);
     console.log("Token verification failed, redirecting to /");
     const response = NextResponse.redirect(new URL("/", request.url));
-    response.cookies.delete("firebaseToken"); // Ensure cookie is deleted on error
+    response.cookies.delete("firebaseToken");
     return response;
   }
 }

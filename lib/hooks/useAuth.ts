@@ -86,13 +86,9 @@ export const useAuth = () => {
       } else {
         console.log("Cookie cleared server-side via API");
       }
-      console.log("Logout successful, redirecting to /");
-      const currentPath = window.location.pathname;
-      if (currentPath !== "/") {
-        await router.push("/"); // Redirect to root
-      } else {
-        console.log("Already on /, no redirect needed");
-      }
+      console.log("Logout successful, replacing location to /");
+      // Use window.location.replace to avoid adding to history
+      window.location.replace("/"); // This prevents back navigation to previous route
       const cookie = document.cookie.split("; ").find((row) => row.startsWith("firebaseToken="));
       console.log("Cookie after logout (client-side):", cookie || "No firebaseToken cookie found");
       return true;
@@ -105,7 +101,6 @@ export const useAuth = () => {
     }
   };
 
-  // Other functions unchanged
   const signUp = async (email: string, password: string, name: string, phone: string) => {
     setLoading(true);
     setError(null);
