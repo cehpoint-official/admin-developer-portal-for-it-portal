@@ -5,7 +5,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileUp, FileText, RefreshCw, Wand2, Upload } from "lucide-react";
+import { FileUp, FileText, RefreshCw, Wand2, Upload, Currency } from "lucide-react";
 import { toast } from "sonner";
 import { validatePdfFile } from "@/lib/PdfValidation";
 import {
@@ -259,6 +259,7 @@ export function Documentation() {
           cloudinaryDocumentationUrl: DocumentationUrl || "",
           cloudinaryQuotationUrl: QuotationUrl || "",
           projectBudget: formData.projectBudget || 0,
+          currency : formData.currency || "",
           startDate: "",
           endDate: "",
           rejectedDate: "",

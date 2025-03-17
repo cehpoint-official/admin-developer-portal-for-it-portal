@@ -4,7 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useProjectFormStore } from "@/lib/store/projectSteps";
 import { useEffect } from "react";
-
+import { DollarSign, IndianRupee } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 export function ProjectDetails() {
   const { formData, updateFormData, validationErrors, syncUserData } =
     useProjectFormStore();
@@ -68,6 +69,35 @@ export function ProjectDetails() {
               {formData.projectOverview.length}/100 characters
             </p>
           </div>
+        </div>
+
+        
+        {/* Currency Selection */}
+        <div className="space-y-2">
+          <Label>Preferred Currency</Label>
+          <RadioGroup
+            value={formData.currency}
+            onValueChange={(value) => updateFormData({ currency: value as "INR" | "USD" })}
+            className="flex gap-4"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="INR" id="currency-inr" />
+              <Label htmlFor="currency-inr" className="flex items-center gap-1 cursor-pointer">
+                <IndianRupee className="h-4 w-4" />
+                <span>Indian Rupee (₹)</span>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="USD" id="currency-usd" />
+              <Label htmlFor="currency-usd" className="flex items-center gap-1 cursor-pointer">
+                <DollarSign className="h-4 w-4" />
+                <span>US Dollar ($)</span>
+              </Label>
+            </div>
+          </RadioGroup>
+          <p className="text-xs text-muted-foreground">
+            The selected currency will be used for all pricing in your quotation.
+          </p>
         </div>
       </div>
     </div>

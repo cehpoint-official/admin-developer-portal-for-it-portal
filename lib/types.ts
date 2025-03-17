@@ -35,6 +35,7 @@ export type Project = {
   submittedAt: string;
   startDate: string;
   endDate: string;
+  currency?: "INR" | "USD"
   rejectionReason?: string;
   projectOverview: string;
   cloudinaryQuotationUrl?: string;

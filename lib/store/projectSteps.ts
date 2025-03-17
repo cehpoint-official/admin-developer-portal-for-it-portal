@@ -23,6 +23,8 @@ export interface ProjectFormData {
   // Cloudinary URLs
   cloudinaryDocumentationUrl: string | null;
   cloudinaryQuotationUrl: string | null;
+   // Add currency field
+  currency: "INR" | "USD"
   projectBudget: number; // Add this new field
 }
 
@@ -114,6 +116,7 @@ const defaultFormData: ProjectFormData = {
   clientPhoneNumber: "",
   cloudinaryDocumentationUrl: null,
   cloudinaryQuotationUrl: null,
+  currency: "INR",
   projectBudget: 0, // Add this new field with default value
 };
 
@@ -201,27 +204,40 @@ export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
   generateQuotation: () => {
     const { formData } = get();
 
-    // Calculate cost based on team composition
-    const seniorDevCost = formData.seniorDevelopers * 75000;
-    const juniorDevCost = formData.juniorDevelopers * 30000;
-    const uiUxCost = formData.uiUxDesigners * 8000;
-    const totalCost = seniorDevCost + juniorDevCost + uiUxCost + 50000;
+  // Get current form data from the state
+    // The function has an error - use formData directly instead of get()
+
+    // Calculate rates based on selected currency
+    const conversionRate = formData.currency === "USD" ? 0.04 : 1 // USD is 4% of INR
+    const seniorDevRate = formData.currency === "INR" ? 75000 : 78000 // 75000 * 0.04 = 3000
+    const juniorDevRate = formData.currency === "INR" ? 30000 : 31200 // 30000 * 0.04 = 1200
+    const uiUxRate = formData.currency === "INR" ? 8000 : 8320 // 8000 * 0.04 = 320
+    const projectManagementCost = formData.currency === "INR" ? 50000 : 52000 // 50000 * 0.04 = 2000
+
+    // Calculate cost based on team composition with correct rates
+    const seniorDevCost = formData.seniorDevelopers * seniorDevRate
+    const juniorDevCost = formData.juniorDevelopers * juniorDevRate
+    const uiUxCost = formData.uiUxDesigners * uiUxRate
+    const totalCost = seniorDevCost + juniorDevCost + uiUxCost + projectManagementCost
+
     
     // Set the projectBudget value to totalCost
     get().updateFormData({ projectBudget: totalCost });
     
-    // Create quotation data object
-    const quotationData: QuotationData = {
-      clientName: formData.clientName,
-      clientEmail: formData.clientEmail,
-      clientPhoneNumber: formData.clientPhoneNumber,
-      projectName: formData.projectName,
-      projectOverview: formData.projectOverview,
-      developmentAreas: formData.developmentAreas,
-      seniorDevelopers: formData.seniorDevelopers,
-      juniorDevelopers: formData.juniorDevelopers,
-      uiUxDesigners: formData.uiUxDesigners
-    };
+   // Create quotation data object
+   const quotationData: QuotationData = {
+    clientName: formData.clientName,
+    clientEmail: formData.clientEmail,
+    clientPhoneNumber: formData.clientPhoneNumber,
+    projectName: formData.projectName,
+    projectOverview: formData.projectOverview,
+    developmentAreas: formData.developmentAreas,
+    seniorDevelopers: formData.seniorDevelopers,
+    juniorDevelopers: formData.juniorDevelopers,
+    uiUxDesigners: formData.uiUxDesigners,
+    currency: formData.currency,
+  }
+
     
     // Generate HTML for the quotation using our utility function
     const quotationHtml = generateQuotationHtml(quotationData);
