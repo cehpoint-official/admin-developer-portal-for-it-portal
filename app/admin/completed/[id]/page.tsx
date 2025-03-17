@@ -1,4 +1,4 @@
-import { fetchAllProjects, fetchProjectById } from "@/app/actions/admin-actions";
+import { fetchAllProjects, fetchProjectById } from "@/app/actions/common-actions";
 import { Project } from "@/lib/types";
 import CompletedProjectDetailClient from "./CompletdProjectDetailClient";
 

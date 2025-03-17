@@ -2,40 +2,14 @@ import {
   collection,
   getDocs,
   doc,
-  getDoc,
   query,
   where,
-  orderBy,
   updateDoc,
-  limit,
 } from "firebase/firestore";
 import { Project, ProjectStatus } from "../types";
 import { db } from "@/firebase";
 
-// Get all the projects request for admin to see
-export const getAllProjectsRequest = async () => {
-  try {
-    const projectsRef = collection(db, "Projects");
-    const querySnapshot = await getDocs(projectsRef);
-    const projects: Project[] = [];
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      projects.push({
-        id: doc.id,
-        ...data,
-        submittedAt: data.submittedAt?.toDate() || null,
-        startDate: data.startDate?.toDate() || null,
-        endDate: data.endDate?.toDate() || null,
-      } as Project);
-    });
-
-    return projects;
-  } catch (error) {
-    console.error("Error fetching all projects:", error);
-    throw error;
-  }
-};
 
 export const updateTheStatusOfProject = async (
   projectId: string,
@@ -57,28 +31,7 @@ export const updateTheStatusOfProject = async (
     throw error;
   }
 };
-export async function getProjectById(projectId: string) {
-  try {
-    const projectRef = doc(db, "Projects", projectId);
-    const projectSnap = await getDoc(projectRef);
 
-    if (projectSnap.exists()) {
-      const data = projectSnap.data();
-      return {
-        id: projectSnap.id,
-        ...data,
-        submittedAt: data.submittedAt?.toDate() || null,
-        startDate: data.startDate?.toDate() || null,
-        endDate: data.endDate?.toDate() || null,
-      } as Project;
-    } else {
-      throw new Error("Project not found");
-    }
-  } catch (error) {
-    console.error("Error fetching project:", error);
-    throw error;
-  }
-}
 // Get projects by status
 export async function getProjectsByStatus(status: string | string[]) {
   try {

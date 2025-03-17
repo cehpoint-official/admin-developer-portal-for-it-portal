@@ -209,9 +209,9 @@ export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
 
     // Calculate rates based on selected currency
     const conversionRate = formData.currency === "USD" ? 0.04 : 1 // USD is 4% of INR
-    const seniorDevRate = formData.currency === "INR" ? 75000 : 78000 // 75000 * 0.04 = 3000
-    const juniorDevRate = formData.currency === "INR" ? 30000 : 31200 // 30000 * 0.04 = 1200
-    const uiUxRate = formData.currency === "INR" ? 8000 : 8320 // 8000 * 0.04 = 320
+    const seniorDevRate = formData.currency === "INR" ? 75000 : 78000 // 75000 * 0.04 = 3000 +75000
+    const juniorDevRate = formData.currency === "INR" ? 30000 : 31200 // 30000 * 0.04 = 1200 + 75000
+    const uiUxRate = formData.currency === "INR" ? 8000 : 8320 // 8000 * 0.04 = 320 + 8000
     const projectManagementCost = formData.currency === "INR" ? 50000 : 52000 // 50000 * 0.04 = 2000
 
     // Calculate cost based on team composition with correct rates

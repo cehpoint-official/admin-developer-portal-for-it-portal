@@ -1,4 +1,4 @@
-import { fetchAllProjects } from "@/app/actions/admin-actions";
+import { fetchAllProjects } from "@/app/actions/common-actions";
 import ProjectRejectedClient from "@/components/admin/rejected/ProjectRejectedClient";
 
 export const revalidate = 200;

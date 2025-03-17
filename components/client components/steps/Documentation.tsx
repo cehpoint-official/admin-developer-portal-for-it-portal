@@ -5,7 +5,14 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileUp, FileText, RefreshCw, Wand2, Upload, Currency } from "lucide-react";
+import {
+  FileUp,
+  FileText,
+  RefreshCw,
+  Wand2,
+  Upload,
+  Currency,
+} from "lucide-react";
 import { toast } from "sonner";
 import { validatePdfFile } from "@/lib/PdfValidation";
 import {
@@ -249,6 +256,7 @@ export function Documentation() {
       const storeToastId = toast.loading("Saving project data...");
 
       try {
+        const currentTimestamp = new Date().toLocaleString();
         // Prepare project data for storage
         const projectData = {
           projectName: formData.projectName || "",
@@ -259,7 +267,7 @@ export function Documentation() {
           cloudinaryDocumentationUrl: DocumentationUrl || "",
           cloudinaryQuotationUrl: QuotationUrl || "",
           projectBudget: formData.projectBudget || 0,
-          currency : formData.currency || "",
+          currency: formData.currency || "",
           startDate: "",
           endDate: "",
           rejectedDate: "",
@@ -268,7 +276,7 @@ export function Documentation() {
           rejectionReason: "",
           status: "pending",
           progress: 0,
-          submittedAt: serverTimestamp(),
+          submittedAt: currentTimestamp,
         };
 
         // Add document to 'projects' collection
@@ -446,6 +454,7 @@ export function Documentation() {
       generateQuotation();
     }
   }, [generateQuotation, formData.quotationPdf]); // Added proper dependencies
+  console.log("documentation",formData);
 
   return (
     <div className="space-y-6">

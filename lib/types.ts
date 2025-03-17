@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'developer' | 'client';
+export type UserRole = "admin" | "developer" | "client";
 
 export interface User {
   uid: string;
@@ -18,8 +18,12 @@ export interface Client {
   budget: number;
 }
 
-export type ProjectStatus = 'pending' | 'in-progress' | 'completed' | 'rejected' | 'delayed';
-
+export type ProjectStatus =
+  | "pending"
+  | "in-progress"
+  | "completed"
+  | "rejected"
+  | "delayed";
 
 export type Project = {
   id: string;
@@ -35,40 +39,41 @@ export type Project = {
   submittedAt: string;
   startDate: string;
   endDate: string;
-  currency?: "INR" | "USD"
+  rejectedDate: string;
+  currency?: "INR" | "USD";
   rejectionReason?: string;
   projectOverview: string;
   cloudinaryQuotationUrl?: string;
   cloudinaryDocumentationUrl?: string;
 };
+
 export type ProjectTask = {
-  id: string
-  title: string
-  description: string
-  assignedTo: string
-  status: "todo" | "in-progress" | "completed"
-  dueDate: any
-}
+  id: string;
+  title: string;
+  description: string;
+  assignedTo: string;
+  status: "todo" | "in-progress" | "completed";
+  dueDate: any;
+};
 
-export type TaskStatus = 'not-started' | 'in-progress' | 'completed';
-
+export type TaskStatus = "not-started" | "in-progress" | "completed";
 
 export type Task = {
   id: string;
   name: string;
   projectId: string;
   projectName: string;
-  status: 'not-started' | 'in-progress' | 'completed';
+  status: "not-started" | "in-progress" | "completed";
   deadline: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
 };
 
 export interface TeamMember {
   id: string;
   name: string;
-  role: 'developer' | 'designer';
+  role: "developer" | "designer";
   projectsAssigned: string[];
-  availability: 'available' | 'busy' | 'unavailable';
+  availability: "available" | "busy" | "unavailable";
   avatar: string;
 }
 

@@ -34,6 +34,7 @@ export default function ClientDashboardUI({
     rejected: projects?.filter((p) => p.status === "rejected").length,
   };
 
+
   // Filter projects based on active tab
   const filteredProjects =
     activeTab === "all"

@@ -1,5 +1,5 @@
 
-import { fetchAllProjects } from "@/app/actions/admin-actions";
+import { fetchAllProjects } from "@/app/actions/common-actions";
 import DeveloperProjectsClient from "@/components/developer/projects/DeveloperProjectsClient";
 
 export const revalidate = 200;

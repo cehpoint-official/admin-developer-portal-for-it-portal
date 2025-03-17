@@ -1,9 +1,6 @@
 import ProjectDetailClient from "./ProjectDetailClient";
 import type { Project } from "@/lib/types";
-import {
-  fetchAllProjects,
-  fetchProjectById,
-} from "@/app/actions/client-actions";
+import { fetchAllProjects, fetchProjectById } from "@/app/actions/common-actions";
 
 export default async function ProjectDetailPage({
   params,
