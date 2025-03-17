@@ -14,21 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-//import { useToast } from '@/components/ui/use-toast';
-import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import { User } from "@/lib/types";
-const mockUser: User = {
-  uid: "client123",
-  name: "John Doe",
-  email: "tusharbhowal4211@gmail.com",
-  role: "client",
-  avatar: "https://ui-avatars.com/api/?name=John+Doe&background=random",
-};
+import { useAuthStore } from "@/lib/store/userStore";
+
 const ClientSettings = () => {
   //const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
-
+const { profile } = useAuthStore();
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -95,7 +88,7 @@ const ClientSettings = () => {
 
   return (
     <Layout
-      user={mockUser}
+      user={profile || {} as User}
       title="Settings"
       description="Manage your account preferences"
     >

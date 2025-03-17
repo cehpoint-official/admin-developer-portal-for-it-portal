@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   },
   images: { unoptimized: true },
   trailingSlash: true, // Recommended
+  experimental: {
+    nodeMiddleware: true,
+  },
   
 };
 

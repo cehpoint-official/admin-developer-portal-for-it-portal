@@ -1,3 +1,5 @@
+import axios from "axios";
+import { auth, db } from "@/firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -5,56 +7,55 @@ import {
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
-  User as FirebaseUser,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-
 import { useAuthStore, UserProfile, UserRole } from "../store/userStore";
-import { auth, db } from "@/firebase";
 
-// Create a new user account (client only)
-export const createUserAccount = async (
-  email: string,
-  password: string,
-  name: string,
-  phone: string
-): Promise<UserProfile> => {
+// Helper to set cookie with explicit attributes
+const setAuthCookie = (token: string) => {
+  console.log("Setting firebaseToken cookie client-side:", token);
+  document.cookie = `firebaseToken=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`;
+};
+
+// Helper to clear cookie with matching attributes
+const clearAuthCookie = () => {
+  console.log("Attempting to clear firebaseToken cookie");
+  document.cookie = `firebaseToken=; Path=/; HttpOnly; Secure; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  const cookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("firebaseToken="));
+  console.log(
+    "Cookie after clear attempt (client-side):",
+    cookie || "No firebaseToken cookie visible"
+  );
+};
+
+// Helper to set custom claims using Axios
+const setCustomClaims = async (uid: string, role: UserRole) => {
   try {
-    // Create auth user
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
+    console.log("Setting custom claims for UID:", uid, "with role:", role);
+    const response = await axios.post(
+      "/api/setCustomClaims",
+      { uid, role },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
     );
-    const user = userCredential.user;
-
-    // Create user profile
-    const userProfile: UserProfile = {
-      uid: user.uid,
-      email: user.email,
-      name: name,
-      phone: phone,
-      avatar: null,
-      role: "client", // Only clients can sign up
-      createdAt: Date.now(),
-      lastLogin: Date.now(),
-    };
-
-    // Save to Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      ...userProfile,
-      createdAt: serverTimestamp(),
-      lastLogin: serverTimestamp(),
-    });
-
-    return userProfile;
+    if (response.status !== 200) {
+      throw new Error("Failed to set custom claims");
+    }
+    console.log("Custom claims set successfully");
   } catch (error: any) {
-    console.error("Error creating user account:", error);
-    throw new Error(error.message || "Failed to create account");
+    console.error(
+      "Error setting custom claims:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.error || "Failed to set custom claims"
+    );
   }
 };
 
-// Sign in with email/password (all user types)
 export const signInWithEmail = async (
   email: string,
   password: string,
@@ -67,31 +68,32 @@ export const signInWithEmail = async (
       password
     );
     const user = userCredential.user;
+    const token = await user.getIdToken();
+    console.log("Initial token generated:", token);
+    setAuthCookie(token);
 
-    // Get user profile from Firestore
     const userDoc = await getDoc(doc(db, "users", user.uid));
-
-    if (!userDoc.exists()) {
-      throw new Error("User profile not found");
-    }
+    if (!userDoc.exists()) throw new Error("User profile not found");
 
     const userData = userDoc.data() as UserProfile;
-
-    // Verify role
     if (userData.role !== role) {
-      await signOut(auth); // Sign out if wrong role
+      await signOut(auth);
+      clearAuthCookie();
       throw new Error(`You do not have ${role} permissions`);
     }
 
-    // Update last login
     await setDoc(
       doc(db, "users", user.uid),
-      {
-        lastLogin: serverTimestamp(),
-      },
+      { lastLogin: serverTimestamp() },
       { merge: true }
     );
 
+    await setCustomClaims(user.uid, userData.role);
+    const refreshedToken = await user.getIdToken(true);
+    console.log("Refreshed token after custom claims:", refreshedToken);
+    setAuthCookie(refreshedToken);
+
+    console.log("Sign-in completed for user:", user.uid);
     return userData;
   } catch (error: any) {
     console.error("Error signing in:", error);
@@ -99,99 +101,159 @@ export const signInWithEmail = async (
   }
 };
 
-// Sign in with Google (client only)
-export const signInWithGoogle = async (): Promise<UserProfile> => {
-  try {
-    const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(auth, provider);
-    const user = userCredential.user;
-
-    // Check if user exists
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (userDoc.exists()) {
-      // User exists, update last login
-      const userData = userDoc.data() as UserProfile;
-      await setDoc(
-        userDocRef,
-        {
-          lastLogin: serverTimestamp(),
-        },
-        { merge: true }
-      );
-
-      return userData;
-    } else {
-      // New user, create profile as client
-      const userProfile: UserProfile = {
-        uid: user.uid,
-        email: user.email,
-        name: user.displayName,
-        avatar: user.photoURL || null,
-        phone: user.phoneNumber,
-        role: "client", // Google sign-in is for clients only
-        createdAt: Date.now(),
-        lastLogin: Date.now(),
-      };
-
-      await setDoc(userDocRef, {
-        ...userProfile,
-        createdAt: serverTimestamp(),
-        lastLogin: serverTimestamp(),
-      });
-
-      return userProfile;
-    }
-  } catch (error: any) {
-    console.error("Error signing in with Google:", error);
-    throw new Error(error.message || "Failed to sign in with Google");
-  }
-};
-
-// Sign out
 export const logoutUser = async (): Promise<void> => {
   try {
+    console.log("Signing out from Firebase Auth...");
     await signOut(auth);
+    clearAuthCookie();
+    console.log("LogoutUser completed, cookie cleared");
     useAuthStore.getState().resetAuth();
+    // Verify auth state is cleared
+    console.log("Firebase auth.currentUser after signOut:", auth.currentUser);
   } catch (error: any) {
     console.error("Error signing out:", error);
     throw new Error(error.message || "Failed to sign out");
   }
 };
 
-// Set up auth listener
 export const initializeAuthListener = (): (() => void) => {
-  return onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
+  return onAuthStateChanged(auth, async (user) => {
     const { setUser, setProfile, setLoading, setError } =
       useAuthStore.getState();
+    setLoading(true);
 
-    try {
-      setLoading(true);
+    console.log("Auth state changed, user:", user ? user.uid : "null");
 
-      if (user) {
-        setUser(user);
+    if (user) {
+      setUser(user);
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as UserProfile;
+        setProfile(userData);
 
-        // Fetch user profile
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data() as UserProfile;
-          setProfile(userData);
+        const tokenResult = await user.getIdTokenResult();
+        const hasRoleClaim = tokenResult.claims.role === userData.role;
+        if (!hasRoleClaim) {
+          await setCustomClaims(user.uid, userData.role);
+          const refreshedToken = await user.getIdToken(true);
+          console.log(
+            "Setting token due to missing role claim:",
+            refreshedToken
+          );
+          setAuthCookie(refreshedToken);
         } else {
-          // Edge case: user exists in auth but not in Firestore
-          setProfile(null);
-          setError("User profile not found");
+          console.log("Role claim exists, not resetting cookie");
         }
       } else {
-        setUser(null);
         setProfile(null);
+        setError("User profile not found");
       }
-    } catch (error: any) {
-      console.error("Auth state error:", error);
-      setError(error.message || "Authentication error");
-    } finally {
-      setLoading(false);
+    } else {
+      console.log("No user, clearing auth state");
+      setUser(null);
+      setProfile(null);
+      clearAuthCookie(); // Ensure cookie is cleared when user is null
     }
+
+    setLoading(false);
   });
+};
+
+// Other functions unchanged for brevity
+export const createUserAccount = async (
+  email: string,
+  password: string,
+  name: string,
+  phone: string
+): Promise<UserProfile> => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+    const token = await user.getIdToken();
+    setAuthCookie(token);
+
+    const userProfile: UserProfile = {
+      uid: user.uid,
+      email: user.email,
+      name,
+      phone,
+      avatar: null,
+      role: "client",
+      createdAt: Date.now(),
+      lastLogin: Date.now(),
+    };
+
+    await setDoc(doc(db, "users", user.uid), {
+      ...userProfile,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+    });
+
+    await setCustomClaims(user.uid, userProfile.role);
+    const refreshedToken = await user.getIdToken(true);
+    setAuthCookie(refreshedToken);
+
+    return userProfile;
+  } catch (error: any) {
+    console.error("Error creating user account:", error);
+    throw new Error(error.message || "Failed to create account");
+  }
+};
+
+export const signInWithGoogle = async (): Promise<UserProfile> => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const user = userCredential.user;
+    const token = await user.getIdToken();
+    setAuthCookie(token);
+
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as UserProfile;
+      await setDoc(
+        userDocRef,
+        { lastLogin: serverTimestamp() },
+        { merge: true }
+      );
+
+      await setCustomClaims(user.uid, userData.role);
+      const refreshedToken = await user.getIdToken(true);
+      setAuthCookie(refreshedToken);
+
+      return userData;
+    }
+
+    const userProfile: UserProfile = {
+      uid: user.uid,
+      email: user.email,
+      name: user.displayName,
+      avatar: user.photoURL || null,
+      phone: user.phoneNumber,
+      role: "client",
+      createdAt: Date.now(),
+      lastLogin: Date.now(),
+    };
+
+    await setDoc(userDocRef, {
+      ...userProfile,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+    });
+
+    await setCustomClaims(user.uid, userProfile.role);
+    const refreshedToken = await user.getIdToken(true);
+    setAuthCookie(refreshedToken);
+
+    return userProfile;
+  } catch (error: any) {
+    console.error("Error signing in with Google:", error);
+    throw new Error(error.message || "Failed to sign in with Google");
+  }
 };
