@@ -12,7 +12,6 @@ interface APIError extends Error {
 const MODEL_NAME = "gemini-2.0-flash";
 const API_KEY = process.env.GOOGLE_API_KEY;
 
-
 const DEFAULT_ERROR_MESSAGE = "An unexpected error occurred";
 
 // Initialize Google Generative AI client
@@ -209,7 +208,11 @@ export async function generateImprovedDocumentationFromGeminiAI(
     const response = await result.response.text();
 
     // Remove any unnecessary AI-generated intro
-    const cleanedResponse = response.replace(/^```html|```$/m, "");
+    // Remove the ```html at the start and ``` at the end
+    let cleanedResponse = response.replace(/^```html\s*|\s*```$/g, "").trim();
+
+    // Remove patterns like `*?\n\n##` and replace them with `##`
+    cleanedResponse = cleanedResponse.replace(/\*?\n\n##/g, "##");
 
     return cleanedResponse;
   } catch (error) {
@@ -240,7 +243,6 @@ export async function generateDocumentationFromGeminiAI(
   projectOverview: string,
   developmentAreas: string[]
 ): Promise<any> {
- 
   if (!API_KEY) {
     throw new Error("Google API key is not configured");
   }
@@ -435,8 +437,12 @@ export async function generateDocumentationFromGeminiAI(
     const response = await result.response.text();
 
     // Remove any unnecessary AI-generated intro
-    const cleanedResponse = response.replace(/^.*?\n\n##/, "##");
-  //  console.log(cleanedResponse);
+    // Remove the ```html at the start and ``` at the end
+    let cleanedResponse = response.replace(/^```html\s*|\s*```$/g, "").trim();
+
+    // Remove patterns like `*?\n\n##` and replace them with `##`
+    cleanedResponse = cleanedResponse.replace(/\*?\n\n##/g, "##");
+    //  console.log(cleanedResponse);
 
     return cleanedResponse;
   } catch (error) {

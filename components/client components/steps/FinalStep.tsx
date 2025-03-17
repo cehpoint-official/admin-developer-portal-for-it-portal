@@ -12,6 +12,12 @@ import { useState } from "react";
 import { useProjectFormStore } from "@/lib/store/projectSteps";
 import { PdfViewer } from "../PdfViewer";
 import Link from "next/link";
+import {
+  htmlToPdfBlob,
+  htmlToPdfBlobForQuotation,
+} from "@/lib/htmlToPdfConvertion";
+import { toast } from "sonner";
+// Adjust import path as needed
 
 export function FinalStep() {
   const { formData } = useProjectFormStore();
@@ -21,6 +27,138 @@ export function FinalStep() {
   // Determine which documentation URL to use
   const documentationUrl = formData.cloudinaryDocumentationUrl;
   const quotationUrl = formData.cloudinaryQuotationUrl;
+
+  const downloadFromUrl = async (url: string, fileName: string) => {
+    try {
+      // Fetch the file as a blob
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/pdf",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch file: ${response.status} ${response.statusText}`
+        );
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+
+      // Create a URL for the blob
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Create a link element
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+
+      // Trigger the download
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error(
+        `Failed to download file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  };
+
+  // Function to handle documentation download and view
+  const handleDocumentationDownloadAndView = async () => {
+    // First show the preview dialog
+    setShowDocPreview(true);
+
+    // Then handle the download
+    try {
+      // First priority: Use Cloudinary URL if available
+      if (documentationUrl) {
+        const fileName = `${
+          formData.projectName || "project"
+        }_documentation.pdf`;
+        await downloadFromUrl(documentationUrl, fileName);
+        return;
+      }
+
+      // Second priority: Generate PDF from HTML content
+      let content = "";
+
+      if (formData.improvedDocumentation) {
+        content = formData.improvedDocumentation;
+      } else if (formData.generatedDocumentation) {
+        content = formData.generatedDocumentation;
+      } else {
+        toast.error("No documentation content available to download");
+        return;
+      }
+
+      // Convert HTML to PDF blob
+      const pdfBlob = await htmlToPdfBlob(content);
+
+      // Create a download link
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${formData.projectName || "project"}_documentation.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading documentation:", error);
+      toast.error("Failed to download documentation");
+    }
+  };
+
+  // Function to handle quotation download and view
+  const handleQuotationDownloadAndView = async () => {
+    // First show the preview dialog
+    setShowQuotationPreview(true);
+
+    // Then handle the download
+    try {
+      // First priority: Use Cloudinary URL if available
+      if (quotationUrl) {
+        const fileName = `${formData.projectName || "project"}_quotation.pdf`;
+        await downloadFromUrl(quotationUrl, fileName);
+        return;
+      }
+
+      // Second priority: Generate PDF from HTML content
+      if (!formData.quotationPdf) {
+        toast.error("No quotation content available to download");
+        return;
+      }
+
+      // Convert HTML to PDF blob using the quotation-specific function
+      const pdfBlob = await htmlToPdfBlobForQuotation(formData.quotationPdf);
+
+      // Create a download link
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${formData.projectName || "project"}_quotation.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading quotation:", error);
+      toast.error("Failed to download quotation");
+    }
+  };
 
   return (
     <div className="space-y-8 text-center py-8">
@@ -108,34 +246,19 @@ export function FinalStep() {
         <Button
           variant="outline"
           className="gap-2"
-          onClick={() => setShowQuotationPreview(true)}
+          onClick={handleQuotationDownloadAndView}
         >
-          <FileText className="h-4 w-4" />
-          View Quotation
+          <Download className="h-4 w-4" />
+          Download Quotation
         </Button>
-        <Link href={quotationUrl || ""}>
-          {" "}
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Download Quotation
-          </Button>
-        </Link>
-
         <Button
           variant="outline"
           className="gap-2"
-          onClick={() => setShowDocPreview(true)}
+          onClick={handleDocumentationDownloadAndView}
         >
-          <FileText className="h-4 w-4" />
-          View Documentation
+          <Download className="h-4 w-4" />
+          Download Documentation
         </Button>
-        <Link href={documentationUrl || ""}>
-          {" "}
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Download Documentation
-          </Button>
-        </Link>
       </div>
 
       {/* Documentation Preview Dialog */}

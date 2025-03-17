@@ -35,21 +35,21 @@ export function Suggestions({ onContinue }: SuggestionsProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Our Suggestions</h2>
-        <p className="text-muted-foreground mt-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground">Our Suggestions</h2>
+        <p className="text-muted-foreground text-sm sm:text-md mt-2">
           Based on your project requirements, we have some recommendations to help deliver a high-quality solution.
         </p>
       </div>
 
       <div className="space-y-4 bg-muted/50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold">
+        <h3 className="sm:text-lg font-semibold">
           Dear Client, we have received your development preferences and team selection.
         </h3>
 
         <div className="mt-4">
           <h4 className="font-medium text-primary underline">Our Suggestions and Advice</h4>
 
-          <p className="mt-2">
+          <p className="mt-2 text-sm">
             You mentioned {formData.developmentAreas.length} development areas for your project:{" "}
             <span className="font-medium">{formData.developmentAreas.join(", ")}</span>
           </p>
@@ -101,8 +101,8 @@ interface SuggestionCardProps {
 function SuggestionCard({ title, description, onAccept }: SuggestionCardProps) {
   return (
     <div className="border rounded-lg p-4 bg-background">
-      <h5 className="font-medium text-lg">{title}</h5>
-      <p className="text-muted-foreground mt-1">{description}</p>
+      <h5 className="font-medium sm:text-lg">{title}</h5>
+      <p className="text-muted-foreground text-sm sm:text-md mt-1">{description}</p>
       <Button variant="outline" size="sm" className="mt-3 gap-2" onClick={onAccept}>
         <CheckCircle className="w-4 h-4" />
         Accept Suggestion
