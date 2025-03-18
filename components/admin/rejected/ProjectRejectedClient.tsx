@@ -25,7 +25,7 @@ const ProjectRejectedClient = ({
 
   // Table columns definition
   const columns = [
-    { header: "Project", accessor: "name" },
+    { header: "Project", accessor: "projectName" },
     { header: "Client", accessor: "clientName" },
     {
       header: "Date Rejected",

@@ -26,6 +26,13 @@ export default function ProjectRequestsClient({
       project.clientName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Define currency symbols mapping
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    INR: "₹",
+    // Add more currencies as needed
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -61,7 +68,9 @@ export default function ProjectRequestsClient({
               header: "Estimated Cost",
               accessor: "projectBudget",
               cell: (row) => {
-                return `₹${row.projectBudget.toLocaleString()}`;
+                // Get currency symbol based on the project's currency, default to $ if not found
+                const currencySymbol = currencySymbols[row.currency] || "$";
+                return `${currencySymbol}${row.projectBudget.toLocaleString()}`;
               },
             },
             { header: "Status", accessor: "status" },

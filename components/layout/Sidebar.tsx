@@ -57,7 +57,7 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
       icon: <XCircle size={20} />,
       title: "Rejected Projects",
     },
-    { href: "/admin/team", icon: <Users size={20} />, title: "Team" },
+  //{ href: "/admin/team", icon: <Users size={20} />, title: "Team" },
   ];
 
   const developerLinks = [

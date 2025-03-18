@@ -23,7 +23,7 @@ export function FinalStep() {
   const { formData } = useProjectFormStore();
   const [showDocPreview, setShowDocPreview] = useState(false);
   const [showQuotationPreview, setShowQuotationPreview] = useState(false);
-  console.log(formData);
+ // console.log(formData);
   // Determine which documentation URL to use
   const documentationUrl = formData.cloudinaryDocumentationUrl;
   const quotationUrl = formData.cloudinaryQuotationUrl;

@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -7,10 +6,8 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  DollarSign,
   Download,
   FileText,
-  Star,
   User,
   Mail,
   Phone,
@@ -19,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -28,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { Project } from "@/lib/types";
+import Link from "next/link";
 
 interface ProjectDetailClientProps {
   project: Project | null;
@@ -35,13 +32,19 @@ interface ProjectDetailClientProps {
 }
 // Client component
 export default function CompletedProjectDetailClient({
-    project,
-    error,
-  }: ProjectDetailClientProps) {
+  project,
+  error,
+}: ProjectDetailClientProps) {
   const router = useRouter();
 
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    INR: "₹",
+    // Add more currencies as needed
+  };
 
-  if (error ||!project) {
+  const currencySymbol = currencySymbols[project?.currency || "₹"];
+  if (error || !project) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col items-center justify-center h-96">
@@ -74,7 +77,7 @@ export default function CompletedProjectDetailClient({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card >
+          <Card>
             <CardHeader className="pb-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
@@ -86,7 +89,7 @@ export default function CompletedProjectDetailClient({
                   </p>
                 </div>
                 <Badge
-                 // variant="success"
+                  // variant="success"
                   className="text-sm px-3 py-1 bg-green-100 text-green-800 rounded-full flex items-center"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
@@ -105,7 +108,7 @@ export default function CompletedProjectDetailClient({
                       <p className="text-sm">{project.projectOverview}</p>
                     </div>
 
-                    <div>
+                    {/* <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">
                         Client Feedback
                       </h3>
@@ -115,7 +118,7 @@ export default function CompletedProjectDetailClient({
                             <Star
                               key={i}
                               className={`h-4 w-4 ${
-                                i <  0//have to give dynamic value
+                                i < 0 //have to give dynamic value
                                   ? "text-yellow-400 fill-yellow-400"
                                   : "text-gray-300"
                               }`}
@@ -124,7 +127,7 @@ export default function CompletedProjectDetailClient({
                         </div>
                         <p className="text-sm italic">{"good work"}</p>
                       </div>
-                    </div>
+                    </div> */}
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -132,9 +135,12 @@ export default function CompletedProjectDetailClient({
                           Estimated Cost
                         </h3>
                         <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
                           <span className="text-lg font-medium">
-                            ${project.projectBudget.toLocaleString()}
+                            <span className="text-green-600 text-xl mr-2">
+                              {" "}
+                              {currencySymbol}
+                            </span>
+                            {project.projectBudget.toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -143,9 +149,12 @@ export default function CompletedProjectDetailClient({
                           Actual Cost
                         </h3>
                         <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
                           <span className="text-lg font-medium">
-                            ${10000}
+                            <span className="text-green-600 text-xl mr-2">
+                              {" "}
+                              {currencySymbol}
+                            </span>
+                            {project?.finalCost?.toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -167,23 +176,25 @@ export default function CompletedProjectDetailClient({
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span>
                               Started:{" "}
-                              {new Date(
-                                project.submittedAt
-                              ).toLocaleDateString()}
+                              {new Date(project.startDate).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span>
                               Deadline:{" "}
-                              {new Date(project?.deadline || 0).toLocaleDateString()}
+                              {new Date(
+                                project?.deadline || 0
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
                             <CheckCircle2 className="h-4 w-4 text-green-600" />
                             <span>
                               Completed:{" "}
-                              {new Date(project?.endDate || 0).toLocaleDateString()}
+                              {new Date(
+                                project?.endDate || 0
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                           <Separator className="my-2" />
@@ -193,7 +204,7 @@ export default function CompletedProjectDetailClient({
                               Total Duration:{" "}
                               {Math.ceil(
                                 (new Date(project.endDate).getTime() -
-                                  new Date(project.submittedAt).getTime()) /
+                                  new Date(project.startDate).getTime()) /
                                   (1000 * 60 * 60 * 24)
                               )}{" "}
                               days
@@ -228,29 +239,24 @@ export default function CompletedProjectDetailClient({
                 <div className="mt-6">
                   <h3 className="font-medium mb-3">Project Documentation</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Button variant="outline" className="justify-start">
-                      <FileText className="mr-2 h-4 w-4" />
-                      <span className="truncate">Project Overview</span>
-                      <Download className="ml-auto h-4 w-4" />
-                    </Button>
+                    <Link href={project.cloudinaryQuotationUrl || ""}>
+                      <Button variant="outline" className="justify-start">
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span className="truncate">Quotation PDF</span>
+                        <Download className="ml-auto h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link href={project.cloudinaryDocumentationUrl || ""}>
                     <Button variant="outline" className="justify-start">
                       <FileText className="mr-2 h-4 w-4" />
                       <span className="truncate">Developer Guide</span>
                       <Download className="ml-auto h-4 w-4" />
                     </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="border-t pt-6 mt-6">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/admin/completed")}
-                className="ml-auto"
-              >
-                Close
-              </Button>
-            </CardFooter>
           </Card>
         </motion.div>
       </div>

@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner"; // Import Sonner toast
+import { restoreProjectAction } from "@/app/actions/admin-actions";
 import {
   ArrowLeft,
   FileText,
@@ -9,7 +11,7 @@ import {
   User,
   Mail,
   Phone,
-  DollarSign,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,14 +26,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Project } from "@/lib/types";
-
+import Link from "next/link";
 
 interface ProjectDetailClientProps {
   project: Project | null;
   error: string | null;
 }
 
-// This is the client component that will be used in the page
 export default function RejectedProjectDetailClient({
   project,
   error,
@@ -52,13 +53,28 @@ export default function RejectedProjectDetailClient({
     );
   }
 
-  const handleRestore = () => {
-    // toast({
-    //   title: "Project Restored",
-    //   description: `${project.name} has been moved to Project Requests.`,
-    // });
-    router.push("/admin/requests");
+  const handleRestore = async () => {
+    const result = await restoreProjectAction(project.id);
+
+    if (result.success) {
+      toast.success("Project Restored", {
+        description: `${project.projectName} has been moved to Project Requests.`,
+      });
+      router.push("/admin/requests");
+    } else {
+      toast.error("Error", {
+        description: result.error || "Failed to restore project",
+      });
+    }
   };
+
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    INR: "₹",
+    // Add more currencies as needed
+  };
+
+  const currencySymbol = currencySymbols[project?.currency || "₹"];
 
   return (
     <div className="space-y-6">
@@ -104,19 +120,24 @@ export default function RejectedProjectDetailClient({
 
               <Separator />
 
-              {/* <div>
+              <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
                   Rejection Reason
                 </h3>
-                <p className="text-destructive">{project.rejectedReason}</p>
-              </div> */}
+                <p className="text-destructive">
+                  {project.rejectionReason || "No reason provided"}
+                </p>
+              </div>
 
-              {/* <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
-                  Rejected on {project.rejectedDate}
+                  Rejected on{" "}
+                  {project.rejectedDate
+                    ? new Date(project.rejectedDate).toLocaleDateString()
+                    : "Unknown date"}
                 </span>
-              </div> */}
+              </div>
             </CardContent>
             <CardFooter className="justify-end">
               <Button
@@ -154,8 +175,10 @@ export default function RejectedProjectDetailClient({
                 <span>{project.clientPhoneNumber}</span>
               </div>
               <div className="flex items-center">
-                <DollarSign className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>${project.projectBudget.toLocaleString()}</span>
+                <span className="text-green-600 text-xl mr-2">
+                  {currencySymbol}
+                </span>
+                <span>{project.projectBudget.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
@@ -165,14 +188,18 @@ export default function RejectedProjectDetailClient({
               <CardTitle>Project Documents</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="mr-2 h-4 w-4" />
-                Overview Document
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="mr-2 h-4 w-4" />
-                Developer Guide
-              </Button>
+              <Link href={project.cloudinaryQuotationUrl || ""}>
+                <Button variant="outline" className="w-full justify-start">
+                  <FileText className="mr-2 h-4 w-4" />
+                  View Quotation PDF
+                </Button>
+              </Link>
+              <Link href={project.cloudinaryDocumentationUrl || ""}>
+                <Button variant="outline" className="w-full justify-start">
+                  <FileText className="mr-2 h-4 w-4" />
+                  View Developer Guide
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </motion.div>

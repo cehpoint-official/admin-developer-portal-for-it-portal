@@ -1,6 +1,9 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import React from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner"; // Import Sonner toast
+import { completeProjectAction } from "@/app/actions/admin-actions";
 import { ArrowLeft, FileText, Calendar, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,22 +11,20 @@ import { format } from "date-fns";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { Project } from "@/lib/types";
+import Link from "next/link";
 
 interface ProjectDetailClientProps {
   project: Project | null;
   error: string | null;
 }
+
 export default function OngoingProjectDetailsClient({
-    project,
-    error: initialError,
-  }: ProjectDetailClientProps) {
-
+  project,
+  error,
+}: ProjectDetailClientProps) {
   const router = useRouter();
-  // const { toast } = useToast();
 
- 
-
-  if (!project) {
+  if (error || !project) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12">
         <h2 className="text-2xl font-semibold mb-2">Project Not Found</h2>
@@ -48,14 +49,28 @@ export default function OngoingProjectDetailsClient({
     return daysLeft <= 3;
   };
 
-  const handleMarkAsCompleted = () => {
-    // toast({
-    //   title: "Project Marked as Completed",
-    //   description: "The project has been moved to completed projects",
-    // });
+  const handleMarkAsCompleted = async () => {
+    const result = await completeProjectAction(project.id);
 
-    router.push("/admin/completed");
+    if (result.success) {
+      toast.success("Project Marked as Completed", {
+        description: "The project has been moved to completed projects",
+      });
+      router.push("/admin/completed");
+    } else {
+      toast.error("Error", {
+        description: result.error || "Failed to mark project as completed",
+      });
+    }
   };
+
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    INR: "₹",
+    // Add more currencies as needed
+  };
+
+  const currencySymbol = currencySymbols[project?.currency || "₹"];
 
   return (
     <motion.div
@@ -125,20 +140,24 @@ export default function OngoingProjectDetailsClient({
               {project.projectOverview}
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 w-full sm:w-auto"
-              >
-                <FileText className="h-4 w-4" />
-                View Project Overview PDF
-              </Button>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 w-full sm:w-auto"
-              >
-                <FileText className="h-4 w-4" />
-                View Developer Guide PDF
-              </Button>
+              <Link href={project.cloudinaryQuotationUrl || ""}>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 w-full sm:w-auto"
+                >
+                  <FileText className="h-4 w-4" />
+                  View Quotation PDF
+                </Button>
+              </Link>
+              <Link href={project.cloudinaryDocumentationUrl || ""}>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 w-full sm:w-auto"
+                >
+                  <FileText className="h-4 w-4" />
+                  View Developer Guide PDF
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -194,14 +213,15 @@ export default function OngoingProjectDetailsClient({
                 Estimated Cost
               </p>
               <p className="text-2xl font-bold">
-                ${project.projectBudget.toLocaleString()}
+                {currencySymbol}
+                {project.projectBudget.toLocaleString()}
               </p>
             </div>
 
             <div>
               <p className="text-sm text-muted-foreground mb-1">Date Started</p>
               <p className="font-medium">
-                {format(new Date(project.submittedAt), "MMMM dd, yyyy")}
+                {format(new Date(project.startDate), "MMMM dd, yyyy")}
               </p>
             </div>
           </CardContent>

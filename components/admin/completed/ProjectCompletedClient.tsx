@@ -25,6 +25,12 @@ const ProjectCompletedClient = ({
       project.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.clientName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  // Define currency symbols mapping
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    INR: "₹",
+    // Add more currencies as needed
+  };
 
   return (
     <motion.div
@@ -55,13 +61,14 @@ const ProjectCompletedClient = ({
         <ProjectTable
           data={filteredProjects || []}
           columns={[
-            { header: "Project Name", accessor: "name" },
+            { header: "Project Name", accessor: "projectName" },
             { header: "Client", accessor: "clientName" },
             {
               header: "Final Cost",
-              accessor: "estimatedCost",
+              accessor: "finalCost",
               cell: (row) => {
-                return `₹${row.estimatedCost.toLocaleString()}`;
+                const currencySymbol = currencySymbols[row.currency] || "₹";
+                return `${currencySymbol}${row.finalCost.toLocaleString()}`;
               },
             },
             {
@@ -79,42 +86,42 @@ const ProjectCompletedClient = ({
                 return `${durationInDays} days`;
               },
             },
-            {
-              header: "Feedback",
-              accessor: "feedback",
-              cell: () => {
-                // Randomly generate 3-5 stars for demo purposes
-                const stars = Math.floor(Math.random() * 3) + 3;
-                return (
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${
-                          i < stars
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                );
-              },
-            },
-            {
-              header: "Report",
-              accessor: "report",
-              cell: () => (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>PDF</span>
-                </Button>
-              ),
-            },
+            // {
+            //   header: "Feedback",
+            //   accessor: "feedback",
+            //   cell: () => {
+            //     // Randomly generate 3-5 stars for demo purposes
+            //     const stars = Math.floor(Math.random() * 3) + 3;
+            //     return (
+            //       <div className="flex">
+            //         {[...Array(5)].map((_, i) => (
+            //           <Star
+            //             key={i}
+            //             className={`h-4 w-4 ${
+            //               i < stars
+            //                 ? "text-yellow-400 fill-yellow-400"
+            //                 : "text-gray-300"
+            //             }`}
+            //           />
+            //         ))}
+            //       </div>
+            //     );
+            //   },
+            // },
+            // {
+            //   header: "Report",
+            //   accessor: "report",
+            //   cell: () => (
+            //     <Button
+            //       variant="ghost"
+            //       size="sm"
+            //       className="flex items-center gap-1"
+            //     >
+            //       <Download className="h-4 w-4" />
+            //       <span>PDF</span>
+            //     </Button>
+            //   ),
+            // },
             {
               header: "Actions",
               accessor: "actions",

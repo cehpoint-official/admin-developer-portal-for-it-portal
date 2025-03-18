@@ -1,13 +1,13 @@
-import type { Project } from "@/lib/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import Link from "next/link"
+import type { Project } from "@/lib/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface ProjectDetailCardProps {
-  project: Project
+  project: Project;
 }
 
 export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
@@ -17,7 +17,7 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
     completed: "bg-green-500/10 text-green-500 border-green-500/20",
     rejected: "bg-red-500/10 text-red-500 border-red-500/20",
     delayed: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-  }
+  };
 
   const statusText: Record<string, string> = {
     pending: "Pending",
@@ -25,22 +25,25 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
     completed: "Completed",
     rejected: "Rejected",
     delayed: "Delayed",
-  }
+  };
 
   const currencySymbols: Record<string, string> = {
     USD: "$",
     INR: "₹",
     // Add more currencies as needed
-  }
+  };
 
-  const currencySymbol = currencySymbols[project.currency] || "$"
+  const currencySymbol = currencySymbols[project?.currency || "₹"];
 
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <CardTitle>{project.projectName}</CardTitle>
-          <Badge variant="outline" className={cn("capitalize", statusColors[project.status])}>
+          <Badge
+            variant="outline"
+            className={cn("capitalize", statusColors[project.status])}
+          >
             {statusText[project.status]}
           </Badge>
         </div>
@@ -48,7 +51,9 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
       <CardContent className="space-y-6">
         <div>
           <h3 className="text-sm font-medium mb-2">Project Overview</h3>
-          <p className="text-sm text-muted-foreground">{project.projectOverview}</p>
+          <p className="text-sm text-muted-foreground">
+            {project.projectOverview}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -76,13 +81,19 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
 
               <div className="flex justify-between text-sm">
                 <dt className="text-muted-foreground">Budget</dt>
-                <dd>{currencySymbol}{project.projectBudget.toLocaleString()}</dd>
+                <dd>
+                  {currencySymbol}
+                  {project.projectBudget.toLocaleString()}
+                </dd>
               </div>
 
               {(project.finalCost || 0) > 0 && (
                 <div className="flex justify-between text-sm">
                   <dt className="text-muted-foreground">Final Cost</dt>
-                  <dd>{currencySymbol}{project.finalCost?.toLocaleString() || '0'}</dd>
+                  <dd>
+                    {currencySymbol}
+                    {project.finalCost?.toLocaleString() || "0"}
+                  </dd>
                 </div>
               )}
             </dl>
@@ -98,7 +109,9 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
 
               <div className="flex justify-between text-sm">
                 <dt className="text-muted-foreground">Email</dt>
-                <dd className="truncate max-w-[180px]">{project.clientEmail}</dd>
+                <dd className="truncate max-w-[180px]">
+                  {project.clientEmail}
+                </dd>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -119,7 +132,9 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
 
         {project.cloudinaryDocumentationUrl && (
           <div>
-            <h3 className="text-sm font-medium mb-2">Developer Documentation</h3>
+            <h3 className="text-sm font-medium mb-2">
+              Developer Documentation
+            </h3>
             <Link
               href={project.cloudinaryDocumentationUrl}
               target="_blank"
@@ -146,5 +161,5 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -9,56 +9,107 @@ import {
 import { Project, ProjectStatus } from "../types";
 import { db } from "@/firebase";
 
-
-
-export const updateTheStatusOfProject = async (
+export async function acceptProject(
   projectId: string,
-  status: ProjectStatus
-) => {
+  deadline: string,
+  finalCost: number
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const projectRef = doc(db, "Projects", projectId);
-    await updateDoc(projectRef, {
-      status: status,
-      // If the status is "in-progress", we might want to set the startDate
-      ...(status === "in-progress" && { startDate: new Date() }),
-      // If the status is "completed", we might want to set the endDate
-      ...(status === "completed" && { endDate: new Date() }),
-    });
-
-    return { success: true, message: `Project status updated to ${status}` };
-  } catch (error) {
-    console.error("Error updating project status:", error);
-    throw error;
-  }
-};
-
-// Get projects by status
-export async function getProjectsByStatus(status: string | string[]) {
-  try {
-    const projectsRef = collection(db, "projects");
-    let projectsQuery;
-
-    if (Array.isArray(status)) {
-      // If status is an array, get projects with any of those statuses
-      projectsQuery = query(projectsRef, where("status", "in", status));
-    } else {
-      // If status is a string, get projects with that status
-      projectsQuery = query(projectsRef, where("status", "==", status));
+    if (!projectId || !deadline || !finalCost) {
+      return {
+        success: false,
+        error: "Project ID, deadline, and final cost are required",
+      };
     }
 
-    const projectsSnapshot = await getDocs(projectsQuery);
-    const projects = projectsSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        submittedAt: data.submittedAt?.toDate() || null,
-        startDate: data.startDate?.toDate() || null,
-        endDate: data.endDate?.toDate() || null,
-      } as Project;
+    const projectRef = doc(db, "Projects", projectId);
+    await updateDoc(projectRef, {
+      status: "in-progress",
+      deadline: deadline,
+      finalCost: finalCost,
+      startDate: new Date().toISOString(),
     });
+
+    return { success: true };
   } catch (error) {
-    console.error("Error getting projects by status:", error);
-    throw new Error("Failed to fetch projects by status");
+    console.error("Error accepting project:", error);
+    return { success: false, error: "Failed to accept project" };
+  }
+}
+
+export async function rejectProject(
+  projectId: string,
+  rejectionReason: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!projectId || !rejectionReason) {
+      return {
+        success: false,
+        error: "Project ID and rejection reason are required",
+      };
+    }
+
+    const projectRef = doc(db, "Projects", projectId);
+    await updateDoc(projectRef, {
+      status: "rejected",
+      rejectionReason: rejectionReason,
+      rejectedDate: new Date().toISOString(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error rejecting project:", error);
+    return { success: false, error: "Failed to reject project" };
+  }
+}
+
+//  mark project as completed
+export async function completeProject(
+  projectId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!projectId) {
+      return {
+        success: false,
+        error: "Project ID is required",
+      };
+    }
+
+    const projectRef = doc(db, "Projects", projectId);
+    await updateDoc(projectRef, {
+      status: "completed",
+      progress: 100,
+      endDate: new Date().toISOString(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error completing project:", error);
+    return { success: false, error: "Failed to complete project" };
+  }
+}
+
+export async function restoreProject(
+  projectId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!projectId) {
+      return {
+        success: false,
+        error: "Project ID is required",
+      };
+    }
+
+    const projectRef = doc(db, "Projects", projectId);
+    await updateDoc(projectRef, {
+      status: "pending",
+      rejectionReason: null, // Clear the rejection reason
+      rejectedDate: null,   // Clear the rejected date
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error restoring project:", error);
+    return { success: false, error: "Failed to restore project" };
   }
 }

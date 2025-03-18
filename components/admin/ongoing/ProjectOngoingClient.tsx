@@ -20,7 +20,7 @@ export default function ProjectOngoingClient({
   const [searchQuery, setSearchQuery] = useState("");
 
   const completedProjects = projects?.filter(
-    (project) => project.status === "completed"
+    (project) => project.status === "in-progress"
   );
   const filteredProjects = completedProjects?.filter(
     (project) =>

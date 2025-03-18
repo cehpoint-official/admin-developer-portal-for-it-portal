@@ -36,7 +36,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { Project } from "@/lib/types";
-
+import Link from "next/link";
+import { toast } from "sonner";
+import {
+  acceptProjectAction,
+  rejectProjectAction,
+} from "@/app/actions/admin-actions";
 
 interface ProjectDetailClientProps {
   project: Project | null;
@@ -47,22 +52,11 @@ const ProjectRequestDetail = ({
   error: initialError,
 }: ProjectDetailClientProps) => {
   const router = useRouter();
-  //const { toast } = useToast();
-
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionForm, setShowRejectionForm] = useState(false);
   const [error] = useState<string | null>(initialError);
-
   const [finalBudget, setFinalBudget] = useState(project?.projectBudget || "");
-
-  //   if (loading) {
-  //     return (
-  //       <div className="flex items-center justify-center h-64">
-  //         <p className="text-muted-foreground">Loading project details...</p>
-  //       </div>
-  //     );
-  //   }
 
   if (error || !project) {
     return (
@@ -78,13 +72,11 @@ const ProjectRequestDetail = ({
     );
   }
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     if (!date) {
-      //   toast({
-      //     title: "Deadline Required",
-      //     description: "Please set a deadline before accepting the project",
-      //     variant: "destructive",
-      //   });
+      toast.error("Deadline Required", {
+        description: "Please set a deadline before accepting the project",
+      });
       return;
     }
 
@@ -93,40 +85,58 @@ const ProjectRequestDetail = ({
       isNaN(Number(finalBudget)) ||
       Number(finalBudget) <= 0
     ) {
-      //   toast({
-      //     title: "Valid Budget Required",
-      //     description: "Please set a valid final budget for the project",
-      //     variant: "destructive",
-      //   });
+      toast.error("Valid Budget Required", {
+        description: "Please set a valid final budget for the project",
+      });
       return;
     }
 
-    // toast({
-    //   title: "Project Accepted",
-    //   description: "The project has been moved to ongoing projects",
-    // });
+    const result = await acceptProjectAction(
+      project.id,
+      date.toISOString(),
+      Number(finalBudget)
+    );
 
-    router.push("/admin/ongoing");
+    if (result.success) {
+      toast.success("Project Accepted", {
+        description: "The project has been moved to ongoing projects",
+      });
+      router.push("/admin/ongoing");
+    } else {
+      toast.error("Error", {
+        description: result.error || "Failed to accept project",
+      });
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!rejectionReason) {
-      //   toast({
-      //     title: "Reason Required",
-      //     description: "Please provide a reason for rejection",
-      //     variant: "destructive",
-      //   });
+      toast.error("Reason Required", {
+        description: "Please provide a reason for rejection",
+      });
       return;
     }
 
-    // toast({
-    //   title: "Project Rejected",
-    //   description: "The project has been moved to rejected projects",
-    // });
+    const result = await rejectProjectAction(project.id, rejectionReason);
 
-    router.push("/admin/rejected");
+    if (result.success) {
+      toast.success("Project Rejected", {
+        description: "The project has been moved to rejected projects",
+      });
+      router.push("/admin/rejected");
+    } else {
+      toast.error("Error", {
+        description: result.error || "Failed to reject project",
+      });
+    }
+  };
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    INR: "₹",
+    // Add more currencies as needed
   };
 
+  const currencySymbol = currencySymbols[project?.currency || "₹"];
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -161,17 +171,24 @@ const ProjectRequestDetail = ({
               <p className="mb-4 leading-relaxed">{project.projectOverview}</p>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-6">
-                <Button className="flex items-center gap-2 w-full sm:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
-                  <FileText className="h-4 w-4" />
-                  View Overview PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 w-full sm:w-auto border-primary/20 shadow-sm"
-                >
-                  <FileText className="h-4 w-4" />
-                  View Developer Guide
-                </Button>
+                <Link href={project.cloudinaryQuotationUrl || ""}>
+                  {" "}
+                  <Button className="flex items-center gap-2 w-full sm:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
+                    <FileText className="h-4 w-4" />
+                    View Quotation PDF
+                  </Button>
+                </Link>
+
+                <Link href={project.cloudinaryDocumentationUrl || ""}>
+                  {" "}
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 w-full sm:w-auto border-primary/20 shadow-sm"
+                  >
+                    <FileText className="h-4 w-4" />
+                    View Developer Guide
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -247,7 +264,7 @@ const ProjectRequestDetail = ({
                   <p className="text-sm text-muted-foreground">Phone</p>
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <p className="font-medium">+1 (555) 123-4567</p>
+                    <p className="font-medium">{project.clientPhoneNumber}</p>
                   </div>
                 </div>
                 <Separator className="bg-primary/10" />
@@ -256,7 +273,10 @@ const ProjectRequestDetail = ({
                     Estimated Budget
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <IndianRupee className="h-5 w-5 text-green-600" />
+                    <span className="text-green-600 text-xl">
+                      {" "}
+                      {currencySymbol}
+                    </span>
                     <p className="text-xl font-bold">
                       {project.projectBudget.toLocaleString()}
                     </p>
@@ -271,7 +291,10 @@ const ProjectRequestDetail = ({
                     Final Budget
                   </Label>
                   <div className="relative mt-1">
-                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-600" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 ">
+                      {currencySymbol}
+                    </span>
+
                     <Input
                       id="finalBudget"
                       className="pl-10 border-primary/20 focus-visible:ring-primary/30"
