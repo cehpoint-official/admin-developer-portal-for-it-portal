@@ -2,7 +2,6 @@ import {
   collection,
   getDocs,
   doc,
-  getDoc,
   query,
   where,
   orderBy,
@@ -10,7 +9,7 @@ import {
   limit,
 } from "firebase/firestore";
 import { Project, ProjectStatus } from "../types";
-import { db } from "@/firebase";
+import { db } from "@/firebase"; // Removed unused auth imports
 
 // Get all projects for a specific client
 export async function getClientProjects(clientEmail: string) {
@@ -29,15 +28,12 @@ export async function getClientProjects(clientEmail: string) {
       } as Project);
     });
 
-
     return projects;
   } catch (error) {
     console.error("Error fetching client projects:", error);
     throw error;
   }
 }
-
-
 
 // Get projects by status
 export async function getProjectsByStatus(
@@ -105,3 +101,4 @@ export async function getRecentProjects(clientEmail: string, limitCount = 5) {
     throw error;
   }
 }
+

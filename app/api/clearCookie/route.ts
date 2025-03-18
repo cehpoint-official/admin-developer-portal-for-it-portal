@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  console.log("API: Clearing firebaseToken cookie server-side");
+//  console.log("API: Clearing firebaseToken cookie server-side");
   const response = NextResponse.json({ message: "Cookie cleared" });
   response.cookies.set("firebaseToken", "", {
     httpOnly: true,

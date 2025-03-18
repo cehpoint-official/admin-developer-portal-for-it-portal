@@ -27,6 +27,14 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
     delayed: "Delayed",
   }
 
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    INR: "₹",
+    // Add more currencies as needed
+  }
+
+  const currencySymbol = currencySymbols[project.currency] || "$"
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -49,27 +57,34 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
             <dl className="space-y-2">
               <div className="flex justify-between text-sm">
                 <dt className="text-muted-foreground">Submitted</dt>
-                <dd>{format(project.submittedAt, "PPP")}</dd>
+                <dd>{format(new Date(project.submittedAt), "PPP")}</dd>
               </div>
 
               {project.startDate && (
                 <div className="flex justify-between text-sm">
                   <dt className="text-muted-foreground">Started</dt>
-                  <dd>{format(project.startDate, "PPP")}</dd>
+                  <dd>{format(new Date(project.startDate), "PPP")}</dd>
                 </div>
               )}
 
               {project.endDate && (
                 <div className="flex justify-between text-sm">
                   <dt className="text-muted-foreground">Completed</dt>
-                  <dd>{format(project.endDate, "PPP")}</dd>
+                  <dd>{format(new Date(project.endDate), "PPP")}</dd>
                 </div>
               )}
 
               <div className="flex justify-between text-sm">
                 <dt className="text-muted-foreground">Budget</dt>
-                <dd>₹{project.projectBudget.toLocaleString()}</dd>
+                <dd>{currencySymbol}{project.projectBudget.toLocaleString()}</dd>
               </div>
+
+              {(project.finalCost || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <dt className="text-muted-foreground">Final Cost</dt>
+                  <dd>{currencySymbol}{project.finalCost?.toLocaleString() || '0'}</dd>
+                </div>
+              )}
             </dl>
           </div>
 
@@ -133,4 +148,3 @@ export default function ProjectDetailCard({ project }: ProjectDetailCardProps) {
     </Card>
   )
 }
-

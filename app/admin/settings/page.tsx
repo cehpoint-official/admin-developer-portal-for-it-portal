@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Key, Lock, Save, User } from "lucide-react";
 import {
   Card,
@@ -15,14 +15,32 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
-const Settings = () => {
+import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { uploadAvatarToCloudinary } from "@/lib/cloudinary";
+import { updateAvatar, updateProfile } from "@/app/actions/common-actions";
+import { useAuthStore } from "@/lib/store/userStore";
+import { auth } from "@/firebase";
+import {
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
+
+const AdminSettings = () => {
+  const { profile } = useAuthStore();
+  const [isLoading, setIsLoading] = useState({
+    profile: false,
+    password: false,
+    avatar: false,
+  });
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const [profileForm, setProfileForm] = useState({
-    fullName: "Admin User",
-    email: "admin@projectmanager.io",
-    phone: "+1 (555) 123-4567",
-    title: "Project Manager",
-    company: "Project Management Co.",
-    bio: "Experienced project manager with a background in web development and design.",
+    fullName: profile?.name || "Admin User",
+    email: profile?.email || "",
+    phone: profile?.phone || "",
+    photoUrl: profile?.avatar || "",
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -31,18 +49,149 @@ const Settings = () => {
     confirmPassword: "",
   });
 
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        fullName: profile.name || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        photoUrl: profile.avatar || "",
+      });
+    }
+  }, [profile]);
+
   // Handle profile form changes
   const handleProfileChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setProfileForm((prev) => ({ ...prev, [name]: value }));
+    if (name !== "email") {
+      // Prevent email changes if you want to keep it read-only like in ClientSettings
+      setProfileForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   // Handle password form changes
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveProfile = async () => {
+    if (!profile?.uid) {
+      toast.error("Please sign in to update your profile");
+      return;
+    }
+
+    setIsLoading((prev) => ({ ...prev, profile: true }));
+
+    try {
+      const profileData = {
+        name: profileForm.fullName,
+        phone: profileForm.phone,
+      };
+
+      const profileResult = await updateProfile(
+        profile.uid,
+        profileData,
+        "/admin/settings"
+      );
+
+      if (profileResult.success) {
+        toast.success("Profile updated successfully");
+      } else {
+        toast.error("Failed to update profile");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred while updating profile");
+    } finally {
+      setIsLoading((prev) => ({ ...prev, profile: false }));
+    }
+  };
+
+  const handleSavePassword = async () => {
+    if (!profile?.uid) {
+      toast.error("Please sign in to update your password");
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("Passwords don't match", {
+        description: "New password and confirm password must match.",
+      });
+      return;
+    }
+
+    setIsLoading((prev) => ({ ...prev, password: true }));
+
+    try {
+      if (!auth.currentUser || !auth.currentUser.email) {
+        throw new Error("No authenticated user found");
+      }
+
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        passwordForm.currentPassword
+      );
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      await updatePassword(auth.currentUser, passwordForm.newPassword);
+
+      toast.success("Password updated successfully");
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error: any) {
+      if (error.code === "auth/wrong-password") {
+        toast.error("Current password is incorrect");
+      } else if (error.code === "auth/weak-password") {
+        toast.error("New password is too weak");
+      } else {
+        toast.error(
+          error.message || "An error occurred while updating password"
+        );
+      }
+    } finally {
+      setIsLoading((prev) => ({ ...prev, password: false }));
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!profile?.uid) {
+      toast.error("Please sign in to update your avatar");
+      return;
+    }
+
+    if (!e.target.files || !e.target.files[0]) return;
+
+    setIsLoading((prev) => ({ ...prev, avatar: true }));
+    setUploadProgress(0);
+
+    try {
+      const file = e.target.files[0];
+      const avatarUrl = await uploadAvatarToCloudinary(file, (progress) => {
+        setUploadProgress(progress);
+      });
+
+      const result = await updateAvatar(
+        profile.uid,
+        avatarUrl,
+        "/admin/settings"
+      );
+
+      if (result.success) {
+        toast.success("Avatar updated successfully");
+        setProfileForm((prev) => ({ ...prev, photoUrl: avatarUrl }));
+      } else {
+        toast.error(result.error || "Failed to update avatar");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred while updating avatar");
+    } finally {
+      setIsLoading((prev) => ({ ...prev, avatar: false }));
+      setUploadProgress(0);
+    }
   };
 
   return (
@@ -71,14 +220,48 @@ const Settings = () => {
                 <div className="flex flex-col items-center space-y-4">
                   <Avatar className="h-24 w-24">
                     <AvatarImage
-                      src="https://ui-avatars.com/api/?background=random&name=Alex+Johnson"
-                      alt="Alex Johnson"
+                      src={
+                        profileForm.photoUrl ||
+                        "https://ui-avatars.com/api/?background=random&name=Admin+User"
+                      }
+                      alt={profileForm.fullName || "Admin User"}
                     />
-                    <AvatarFallback>AJ</AvatarFallback>
+                    <AvatarFallback>
+                      {profileForm.fullName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
                   </Avatar>
-                  <Button variant="outline" size="sm">
-                    Change Avatar
-                  </Button>
+                  <div className="w-full space-y-2">
+                    <Input
+                      type="file"
+                      id="avatar-upload"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      accept="image/*"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() =>
+                        document.getElementById("avatar-upload")?.click()
+                      }
+                      disabled={isLoading.avatar}
+                    >
+                      {isLoading.avatar ? "Uploading..." : "Change Avatar"}
+                    </Button>
+                    {isLoading.avatar && (
+                      <div className="w-full space-y-1">
+                        <Progress
+                          value={uploadProgress}
+                          className="h-2 w-full"
+                        />
+                        <p className="text-xs text-center">{uploadProgress}%</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex-1 grid gap-4">
@@ -98,7 +281,9 @@ const Settings = () => {
                         id="email"
                         name="email"
                         value={profileForm.email}
-                        onChange={handleProfileChange}
+                        readOnly
+                        disabled
+                        className="bg-gray-100 cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -113,26 +298,6 @@ const Settings = () => {
                         onChange={handleProfileChange}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Job Title</Label>
-                      <Input
-                        id="title"
-                        name="title"
-                        value={profileForm.title}
-                        onChange={handleProfileChange}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">Bio</Label>
-                    <textarea
-                      id="bio"
-                      name="bio"
-                      value={profileForm.bio}
-                      onChange={handleProfileChange}
-                      className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    />
                   </div>
                 </div>
               </div>
@@ -140,9 +305,11 @@ const Settings = () => {
             <CardFooter className="flex justify-end">
               <Button
                 className="flex items-center gap-1"
+                onClick={handleSaveProfile}
+                disabled={isLoading.profile}
               >
                 <Save className="h-4 w-4" />
-                Save Changes
+                {isLoading.profile ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
           </Card>
@@ -200,22 +367,24 @@ const Settings = () => {
                     confirmPassword: "",
                   })
                 }
+                disabled={isLoading.password}
               >
                 Reset Fields
               </Button>
               <Button
                 className="flex items-center gap-1"
+                onClick={handleSavePassword}
+                disabled={isLoading.password}
               >
                 <Lock className="h-4 w-4" />
-                Update Password
+                {isLoading.password ? "Updating..." : "Update Password"}
               </Button>
             </CardFooter>
           </Card>
-
         </TabsContent>
       </Tabs>
     </motion.div>
   );
 };
 
-export default Settings;
+export default AdminSettings;

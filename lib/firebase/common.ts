@@ -55,3 +55,47 @@ export async function getProjectById(projectId: string) {
     }
   }
   
+  export interface ProfileUpdateData {
+    name?: string;
+    phone?: string;
+    avatar?: string;
+  }
+  
+  export async function updateUserProfile(
+    uid: string,
+    profileData: ProfileUpdateData
+  ): Promise<void> {
+    try {
+      const userRef = doc(db, "users", uid);
+  
+      await updateDoc(userRef, {
+        ...profileData,
+        updatedAt: new Date().toLocaleString(),
+      });
+  
+      console.log("Profile updated successfully");
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      throw new Error(error.message || "Failed to update profile");
+    }
+  }
+  
+  export async function updateUserAvatar(
+    uid: string,
+    avatarUrl: string
+  ): Promise<void> {
+    try {
+      const userRef = doc(db, "users", uid);
+  
+      await updateDoc(userRef, {
+        avatar: avatarUrl,
+        updatedAt: new Date().toLocaleString(),
+      });
+  
+      console.log("Avatar updated successfully");
+    } catch (error: any) {
+      console.error("Error updating avatar:", error);
+      throw new Error(error.message || "Failed to update avatar");
+    }
+  }
+  
