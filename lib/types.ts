@@ -48,7 +48,11 @@ export type ProjectStatus =
     progressType?: "task-based" | "manual"; // New field to lock tracking method
     isCompleted?: boolean; // Flag to lock edits when progress reaches 100%
   };
-  
+  export type ClientTask = {
+    id: string;
+    name: string;
+    completed: boolean;
+  };
   export type Task = {
     id: string;
     name: string;
@@ -67,23 +71,23 @@ export type ProjectTask = {
   dueDate: any;
 };
 
-export type TaskStatus = "not-started" | "in-progress" | "completed";
+// export type TaskStatus = "not-started" | "in-progress" | "completed";
 
 
-export interface TeamMember {
-  id: string;
-  name: string;
-  role: "developer" | "designer";
-  projectsAssigned: string[];
-  availability: "available" | "busy" | "unavailable";
-  avatar: string;
-}
+// export interface TeamMember {
+//   id: string;
+//   name: string;
+//   role: "developer" | "designer";
+//   projectsAssigned: string[];
+//   availability: "available" | "busy" | "unavailable";
+//   avatar: string;
+// }
 
-export interface Message {
-  id: string;
-  senderId: string;
-  receiverId: string;
-  content: string;
-  timestamp: string;
-  read: boolean;
-}
+// export interface Message {
+//   id: string;
+//   senderId: string;
+//   receiverId: string;
+//   content: string;
+//   timestamp: string;
+//   read: boolean;
+// }

@@ -67,9 +67,6 @@ export default function DeveloperProjectsClient({
       cell: (row: any) => (
         <div className="w-full max-w-[180px]">
           <div className="flex items-center justify-between text-xs mb-1">
-            <span>
-              {row.tasksCompleted}/{row.tasksTotal} tasks
-            </span>
             <span className="font-medium">{row.progress}%</span>
           </div>
           <Progress

@@ -1,6 +1,7 @@
 "use server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { ClientTask } from "./types";
 
 // Type definitions
 interface APIError extends Error {
@@ -467,3 +468,67 @@ export async function generateDocumentationFromGeminiAI(
     );
   }
 }
+
+export async function generateTasksFromDeveloperDocumentationFromGeminiAI(
+    textContent: string
+  ): Promise<ClientTask[]> {
+    if (!API_KEY) {
+      throw new Error("Google API key is not configured");
+    }
+  
+    try {
+      const PROMPT = `
+        🔹 **You are an expert Project Architect & Senior Developer.**
+        Your task is to analyze the provided developer documentation text and generate a concise, actionable list of tasks for a developer to implement the project. The tasks should be specific, clear, and focused on development work.
+  
+        ---
+  
+        ## 📌 **Input Documentation Text**
+        \`\`\`
+        ${textContent}
+        \`\`\`
+  
+        ---
+  
+        ## 📌 **Instructions**
+        - Generate a list of tasks based on the documentation.
+        - Each task should be a single, actionable development step.
+        - Avoid vague tasks like "Build the app" — break them into smaller, specific steps.
+        - Return the response as a JSON array of objects with the following structure:
+          - \`id\`: a unique string identifier (e.g., "task-1", "task-2")
+          - \`name\`: a concise description of the task (e.g., "Set up Firebase authentication")
+          - \`completed\`: a boolean, always set to false
+  
+        ## 📌 **Response Format**
+        Return the tasks in this exact JSON format:
+        \`\`\`json
+        [
+          {"id": "task-1", "name": "Set up project repository", "completed": false},
+          {"id": "task-2", "name": "Design database schema", "completed": false}
+        ]
+        \`\`\`
+  
+        ---
+  
+        ## 🎯 **Output**
+        Provide only the JSON array of tasks, with no additional text or markdown outside the JSON.
+      `;
+  
+      const result = await model.generateContent(PROMPT);
+      const response = await result.response.text();
+  
+      // Clean and parse the response
+      const cleanedResponse = response.replace(/^```json\s*|\s*```$/g, "").trim();
+      const tasks: ClientTask[] = JSON.parse(cleanedResponse);
+  
+      // Validate the parsed tasks
+      if (!Array.isArray(tasks) || tasks.some((t) => !t.id || !t.name || typeof t.completed !== "boolean")) {
+        throw new Error("Invalid task format returned by AI");
+      }
+  
+      return tasks;
+    } catch (error) {
+      console.error("Task generation error:", error);
+      throw new Error(`Task generation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }

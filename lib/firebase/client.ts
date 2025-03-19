@@ -7,9 +7,10 @@ import {
   orderBy,
   updateDoc,
   limit,
+  setDoc,
 } from "firebase/firestore";
-import { Project, ProjectStatus } from "../types";
-import { db } from "@/firebase"; // Removed unused auth imports
+import { Project, ProjectStatus, Task } from "../types";
+import { db } from "@/firebase";
 
 // Get all projects for a specific client
 export async function getClientProjects(clientEmail: string) {

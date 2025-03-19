@@ -71,16 +71,16 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
       icon: <Briefcase size={20} />,
       title: "My Projects",
     },
-    {
-      href: "/developer/tasks",
-      icon: <CheckSquare size={20} />,
-      title: "Task Management",
-    },
-    {
-      href: "/developer/chat",
-      icon: <MessageSquare size={20} />,
-      title: "Chat with Admin",
-    },
+    // {
+    //   href: "/developer/tasks",
+    //   icon: <CheckSquare size={20} />,
+    //   title: "Task Management",
+    // },
+    // {
+    //   href: "/developer/chat",
+    //   icon: <MessageSquare size={20} />,
+    //   title: "Chat with Admin",
+    // },
   ];
 
   const clientLinks = [
