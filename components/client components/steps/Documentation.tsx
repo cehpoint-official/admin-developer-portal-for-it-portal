@@ -277,6 +277,8 @@ export function Documentation() {
           status: "pending",
           progress: 0,
           submittedAt: currentTimestamp,
+          progressType: null, // Initially null until user chooses
+          isCompleted: false,
         };
 
         // Add document to 'projects' collection
@@ -454,7 +456,7 @@ export function Documentation() {
       generateQuotation();
     }
   }, [generateQuotation, formData.quotationPdf]); // Added proper dependencies
-  console.log("documentation",formData);
+  console.log("documentation", formData);
 
   return (
     <div className="space-y-6">

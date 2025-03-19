@@ -25,27 +25,38 @@ export type ProjectStatus =
   | "rejected"
   | "delayed";
 
-export type Project = {
-  id: string;
-  projectName: string;
-  clientName: string;
-  clientEmail: string;
-  clientPhoneNumber: string;
-  projectBudget: number;
-  finalCost?: number;
-  status: ProjectStatus;
-  deadline?: string;
-  progress: number;
-  submittedAt: string;
-  startDate: string;
-  endDate: string;
-  rejectedDate: string;
-  currency?: "INR" | "USD";
-  rejectionReason?: string;
-  projectOverview: string;
-  cloudinaryQuotationUrl?: string;
-  cloudinaryDocumentationUrl?: string;
-};
+  export type Project = {
+    id: string;
+    projectName: string;
+    clientName: string;
+    clientEmail: string;
+    clientPhoneNumber: string;
+    projectBudget: number;
+    finalCost?: number;
+    status: ProjectStatus;
+    deadline?: string;
+    progress: number;
+    submittedAt: string;
+    startDate: string;
+    endDate: string;
+    rejectedDate: string;
+    currency?: "INR" | "USD";
+    rejectionReason?: string;
+    projectOverview: string;
+    cloudinaryQuotationUrl?: string;
+    cloudinaryDocumentationUrl?: string;
+    progressType?: "task-based" | "manual"; // New field to lock tracking method
+    isCompleted?: boolean; // Flag to lock edits when progress reaches 100%
+  };
+  
+  export type Task = {
+    id: string;
+    name: string;
+    projectId: string;
+    projectName: string;
+    status: "not-started" | "in-progress" | "completed";
+    deadline?: string; // Optional, can be set if needed
+  };
 
 export type ProjectTask = {
   id: string;
@@ -58,15 +69,6 @@ export type ProjectTask = {
 
 export type TaskStatus = "not-started" | "in-progress" | "completed";
 
-export type Task = {
-  id: string;
-  name: string;
-  projectId: string;
-  projectName: string;
-  status: "not-started" | "in-progress" | "completed";
-  deadline: string;
-  priority: "low" | "medium" | "high";
-};
 
 export interface TeamMember {
   id: string;
