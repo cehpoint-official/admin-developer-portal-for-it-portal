@@ -256,7 +256,7 @@ export function Documentation() {
       const storeToastId = toast.loading("Saving project data...");
 
       try {
-        const currentTimestamp = new Date().toLocaleString();
+        const currentTimestamp = new Date().toISOString();
         // Prepare project data for storage
         const projectData = {
           projectName: formData.projectName || "",

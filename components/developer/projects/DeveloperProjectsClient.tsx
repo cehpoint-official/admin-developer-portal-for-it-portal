@@ -2,14 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Filter,
-  Search,
-  Clock,
-  CheckCircle2,
-  ClipboardList,
-  FileText,
-} from "lucide-react";
+import { Filter, Search, Clock, CheckCircle2, FileText } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,7 +13,6 @@ import ProjectTable, {
 } from "@/components/ui-custom/ProjectTable";
 import { motion } from "framer-motion";
 import { Project } from "@/lib/types";
-
 
 export default function DeveloperProjectsClient({
   projects,
@@ -38,10 +31,9 @@ export default function DeveloperProjectsClient({
       project.projectOverview.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesTab =
-      activeTab === "all" ||
+      (activeTab === "all" && project.status !== "pending") ||
       (activeTab === "in-progress" && project.status === "in-progress") ||
-      (activeTab === "completed" && project.status === "completed") ||
-      (activeTab === "pending" && project.status === "pending");
+      (activeTab === "completed" && project.status === "completed");
 
     return matchesSearch && matchesTab;
   });
@@ -53,10 +45,7 @@ export default function DeveloperProjectsClient({
       accessor: "projectName",
       cell: (row: any) => (
         <div>
-          <div className="font-medium">{row.name}</div>
-          <div className="text-sm text-muted-foreground">
-            Client: {row.client}
-          </div>
+          <div className="text-sm text-muted-foreground">{row.projectName}</div>
         </div>
       ),
     },
@@ -66,7 +55,9 @@ export default function DeveloperProjectsClient({
       cell: (row: any) => (
         <div className="flex items-center">
           <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-          {row.deadline}
+          {row.deadline
+            ? format(new Date(row.deadline), "MMMM dd, yyyy")
+            : "Not set"}
         </div>
       ),
     },
@@ -117,7 +108,7 @@ export default function DeveloperProjectsClient({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="glassmorphism-subtle border shadow rounded-lg p-4 flex items-center space-x-4">
           <div className="p-3 rounded-full bg-blue-100">
             <Clock className="h-5 w-5 text-blue-600" />
@@ -127,9 +118,7 @@ export default function DeveloperProjectsClient({
               In Progress
             </p>
             <p className="text-2xl font-bold">
-              {
-                projects?.filter((p) => p.status === "in-progress").length
-              }
+              {projects?.filter((p) => p.status === "in-progress").length}
             </p>
           </div>
         </div>
@@ -147,20 +136,6 @@ export default function DeveloperProjectsClient({
             </p>
           </div>
         </div>
-
-        <div className="glassmorphism-subtle border shadow rounded-lg p-4 flex items-center space-x-4">
-          <div className="p-3 rounded-full bg-orange-100">
-            <ClipboardList className="h-5 w-5 text-orange-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">
-              Not Started
-            </p>
-            <p className="text-2xl font-bold">
-              {projects?.filter((p) => p.status === "pending").length}
-            </p>
-          </div>
-        </div>
       </div>
 
       <div className="space-y-4">
@@ -175,7 +150,6 @@ export default function DeveloperProjectsClient({
               <TabsTrigger value="all">All Projects</TabsTrigger>
               <TabsTrigger value="in-progress">In Progress</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
-              <TabsTrigger value="pending">Not Started</TabsTrigger>
             </TabsList>
 
             <div className="flex gap-2">
@@ -214,7 +188,7 @@ export default function DeveloperProjectsClient({
 
           <TabsContent value="completed" className="mt-6">
             <ProjectTable
-               data={filteredProjects || []}
+              data={filteredProjects || []}
               columns={columns}
               emptyMessage="No completed projects found"
             />
