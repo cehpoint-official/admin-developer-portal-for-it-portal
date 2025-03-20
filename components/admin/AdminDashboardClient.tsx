@@ -30,7 +30,7 @@ import {
 import { motion } from "framer-motion";
 import { Project } from "@/lib/types";
 
-export default function DashboardClient({
+export default function AdminDashboardClient({
   projects,
 }: {
   projects: Project[] | undefined;
