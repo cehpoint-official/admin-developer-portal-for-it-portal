@@ -12,30 +12,41 @@ import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useAuthStore, UserProfile, UserRole } from "../store/userStore";
 
 const setAuthCookie = (token: string) => {
-  console.log("Setting firebaseToken cookie client-side:", token);
+  // console.log("Setting firebaseToken cookie client-side:", token);
   document.cookie = `firebaseToken=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`;
 };
 
 const clearAuthCookie = () => {
-  console.log("Attempting to clear firebaseToken cookie");
+  // console.log("Attempting to clear firebaseToken cookie");
   document.cookie = `firebaseToken=; Path=/; HttpOnly; Secure; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  const cookie = document.cookie.split("; ").find((row) => row.startsWith("firebaseToken="));
-  console.log("Cookie after clear attempt (client-side):", cookie || "No firebaseToken cookie visible");
+  const cookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("firebaseToken="));
+  //  console.log("Cookie after clear attempt (client-side):", cookie || "No firebaseToken cookie visible");
 };
 
 const setCustomClaims = async (uid: string, role: UserRole) => {
   try {
     console.log("Setting custom claims for UID:", uid, "with role:", role);
-    const response = await axios.post("/api/setCustomClaims", { uid, role }, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axios.post(
+      "/api/setCustomClaims",
+      { uid, role },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
     if (response.status !== 200) {
       throw new Error("Failed to set custom claims");
     }
     console.log("Custom claims set successfully");
   } catch (error: any) {
-    console.error("Error setting custom claims:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || "Failed to set custom claims");
+    console.error(
+      "Error setting custom claims:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.error || "Failed to set custom claims"
+    );
   }
 };
 
@@ -45,10 +56,14 @@ export const signInWithEmail = async (
   role: UserRole
 ): Promise<UserProfile> => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
     const token = await user.getIdToken();
-    console.log("Initial token generated:", token);
+  //  console.log("Initial token generated:", token);
     setAuthCookie(token);
 
     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -61,11 +76,15 @@ export const signInWithEmail = async (
       throw new Error(`You do not have ${role} permissions`);
     }
 
-    await setDoc(doc(db, "users", user.uid), { lastLogin: serverTimestamp() }, { merge: true });
+    await setDoc(
+      doc(db, "users", user.uid),
+      { lastLogin: serverTimestamp() },
+      { merge: true }
+    );
 
     await setCustomClaims(user.uid, userData.role);
     const refreshedToken = await user.getIdToken(true);
-    console.log("Refreshed token after custom claims:", refreshedToken);
+ //   console.log("Refreshed token after custom claims:", refreshedToken);
     setAuthCookie(refreshedToken);
 
     console.log("Sign-in completed for user:", user.uid);
@@ -92,7 +111,8 @@ export const logoutUser = async (): Promise<void> => {
 
 export const initializeAuthListener = (): (() => void) => {
   return onAuthStateChanged(auth, async (user) => {
-    const { setUser, setProfile, setLoading, setError } = useAuthStore.getState();
+    const { setUser, setProfile, setLoading, setError } =
+      useAuthStore.getState();
     setLoading(true);
 
     console.log("Auth state changed, user:", user ? user.uid : "null");
@@ -109,7 +129,10 @@ export const initializeAuthListener = (): (() => void) => {
         if (!hasRoleClaim) {
           await setCustomClaims(user.uid, userData.role);
           const refreshedToken = await user.getIdToken(true);
-          console.log("Setting token due to missing role claim:", refreshedToken);
+          console.log(
+            "Setting token due to missing role claim:",
+            refreshedToken
+          );
           setAuthCookie(refreshedToken);
         } else {
           console.log("Role claim exists, not resetting cookie");
@@ -137,7 +160,11 @@ export const createUserAccount = async (
   phone: string
 ): Promise<UserProfile> => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
     const token = await user.getIdToken();
     setAuthCookie(token);
@@ -183,7 +210,11 @@ export const signInWithGoogle = async (): Promise<UserProfile> => {
 
     if (userDoc.exists()) {
       const userData = userDoc.data() as UserProfile;
-      await setDoc(userDocRef, { lastLogin: serverTimestamp() }, { merge: true });
+      await setDoc(
+        userDocRef,
+        { lastLogin: serverTimestamp() },
+        { merge: true }
+      );
 
       await setCustomClaims(user.uid, userData.role);
       const refreshedToken = await user.getIdToken(true);
