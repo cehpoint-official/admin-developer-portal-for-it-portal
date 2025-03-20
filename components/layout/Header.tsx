@@ -21,7 +21,7 @@ const Header = ({ title, description }: DashboardHeaderProps) => {
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
-      <div className="flex items-center gap-2 mt-4 sm:mt-0">
+      {/* <div className="flex items-center gap-2 mt-4 sm:mt-0">
         <Button
           variant="ghost"
           size="icon"
@@ -48,7 +48,7 @@ const Header = ({ title, description }: DashboardHeaderProps) => {
             Home
           </Button>
         </Link>
-      </div>
+      </div> */}
     </motion.div>
   );
 };

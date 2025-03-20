@@ -34,7 +34,12 @@ interface SidebarProps {
 const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
+
+  if (!isAuthenticated || !role) {
+    return null;
+  }
+
   const adminLinks = [
     { href: "/admin", icon: <LayoutDashboard size={20} />, title: "Dashboard" },
     {
@@ -57,7 +62,6 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
       icon: <XCircle size={20} />,
       title: "Rejected Projects",
     },
-  //{ href: "/admin/team", icon: <Users size={20} />, title: "Team" },
   ];
 
   const developerLinks = [
@@ -71,16 +75,6 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
       icon: <Briefcase size={20} />,
       title: "My Projects",
     },
-    // {
-    //   href: "/developer/tasks",
-    //   icon: <CheckSquare size={20} />,
-    //   title: "Task Management",
-    // },
-    // {
-    //   href: "/developer/chat",
-    //   icon: <MessageSquare size={20} />,
-    //   title: "Chat with Admin",
-    // },
   ];
 
   const clientLinks = [
@@ -96,23 +90,17 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
     },
   ];
 
-  let links;
-  switch (role) {
-    case "admin":
-      links = adminLinks;
-      break;
-    case "developer":
-      links = developerLinks;
-      break;
-    case "client":
-      links = clientLinks;
-      break;
-    default:
-      links = clientLinks;
-  }
+  const links =
+    role === "admin"
+      ? adminLinks
+      : role === "developer"
+      ? developerLinks
+      : clientLinks;
+
   const handleLogout = async () => {
     await logout();
     toast.success("You have been successfully logged out.");
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -122,7 +110,7 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
         <Button
           variant="outline"
           size="icon"
-          className="fixed top-4 left-4 z-50 lg:hidden"
+          className="fixed top-4 left-4 z-50 lg:hidden" // Fixed here
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           <Menu className="h-6 w-6" />
@@ -134,8 +122,8 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 bg-card transform transition-transform duration-300 ease-in-out",
           "border-r flex flex-col h-screen",
-          "lg:static lg:translate-x-0", // Remain visible on large screens
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full" // Slide in/out on mobile
+          "lg:static lg:translate-x-0",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="p-6 flex items-center justify-between">
@@ -154,8 +142,6 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
             </div>
             <h1 className="font-bold capitalize">{role} Portal</h1>
           </Link>
-
-          {/* Close button for mobile */}
           <Button
             variant="ghost"
             size="icon"
@@ -225,7 +211,6 @@ const SideBar = ({ role, userName, userAvatar }: SidebarProps) => {
                 Settings
               </Button>
             </Link>
-
             <Button
               variant="outline"
               size="sm"
