@@ -62,14 +62,14 @@ export type ProjectStatus =
     deadline?: string; // Optional, can be set if needed
   };
 
-export type ProjectTask = {
-  id: string;
-  title: string;
-  description: string;
-  assignedTo: string;
-  status: "todo" | "in-progress" | "completed";
-  dueDate: any;
-};
+// export type ProjectTask = {
+//   id: string;
+//   title: string;
+//   description: string;
+//   assignedTo: string;
+//   status: "todo" | "in-progress" | "completed";
+//   dueDate: any;
+// };
 
 // export type TaskStatus = "not-started" | "in-progress" | "completed";
 
