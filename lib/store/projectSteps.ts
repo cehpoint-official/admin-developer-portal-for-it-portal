@@ -204,15 +204,19 @@ export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
   generateQuotation: () => {
     const { formData } = get();
 
-  // Get current form data from the state
-    // The function has an error - use formData directly instead of get()
-
     // Calculate rates based on selected currency
-    const conversionRate = formData.currency === "USD" ? 0.04 : 1 // USD is 4% of INR
-    const seniorDevRate = formData.currency === "INR" ? 75000 : 78000 // 75000 * 0.04 = 3000 +75000
-    const juniorDevRate = formData.currency === "INR" ? 30000 : 31200 // 30000 * 0.04 = 1200 + 75000
-    const uiUxRate = formData.currency === "INR" ? 8000 : 8320 // 8000 * 0.04 = 320 + 8000
-    const projectManagementCost = formData.currency === "INR" ? 50000 : 52000 // 50000 * 0.04 = 2000
+    const exchangeRate = 83 // 1 USD = ₹83
+
+    // For INR, use base rates
+    // For USD, add 4% to base INR value and then divide by exchange rate
+    const seniorDevRate = formData.currency === "INR" ? 75000 : Math.round((75000 + 0.04 * 75000) / exchangeRate) // ≈ $940
+
+    const juniorDevRate = formData.currency === "INR" ? 30000 : Math.round((30000 + 0.04 * 30000) / exchangeRate) // ≈ $376
+
+    const uiUxRate = formData.currency === "INR" ? 8000 : Math.round((8000 + 0.04 * 8000) / exchangeRate) // ≈ $100
+
+    const projectManagementCost =
+      formData.currency === "INR" ? 50000 : Math.round((50000 + 0.04 * 50000) / exchangeRate) // ≈ $627
 
     // Calculate cost based on team composition with correct rates
     const seniorDevCost = formData.seniorDevelopers * seniorDevRate
@@ -220,27 +224,27 @@ export const useProjectFormStore = create<ProjectFormStore>((set, get) => ({
     const uiUxCost = formData.uiUxDesigners * uiUxRate
     const totalCost = seniorDevCost + juniorDevCost + uiUxCost + projectManagementCost
 
+
     
     // Set the projectBudget value to totalCost
     get().updateFormData({ projectBudget: totalCost });
     
-   // Create quotation data object
-   const quotationData: QuotationData = {
-    clientName: formData.clientName,
-    clientEmail: formData.clientEmail,
-    clientPhoneNumber: formData.clientPhoneNumber,
-    projectName: formData.projectName,
-    projectOverview: formData.projectOverview,
-    developmentAreas: formData.developmentAreas,
-    seniorDevelopers: formData.seniorDevelopers,
-    juniorDevelopers: formData.juniorDevelopers,
-    uiUxDesigners: formData.uiUxDesigners,
-    currency: formData.currency,
-  }
+    // Create quotation data object
+    const quotationData: QuotationData = {
+      clientName: formData.clientName,
+      clientEmail: formData.clientEmail,
+      clientPhoneNumber: formData.clientPhoneNumber,
+      projectName: formData.projectName,
+      projectOverview: formData.projectOverview,
+      developmentAreas: formData.developmentAreas,
+      seniorDevelopers: formData.seniorDevelopers,
+      juniorDevelopers: formData.juniorDevelopers,
+      uiUxDesigners: formData.uiUxDesigners,
+      currency: formData.currency,
+    }
 
-    
     // Generate HTML for the quotation using our utility function
-    const quotationHtml = generateQuotationHtml(quotationData);
+    const quotationHtml = generateQuotationHtml(quotationData)
 
     // Update the form data with the generated HTML
     get().updateFormData({ quotationPdf: quotationHtml });

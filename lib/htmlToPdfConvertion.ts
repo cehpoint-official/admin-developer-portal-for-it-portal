@@ -1,64 +1,127 @@
 // Function to convert HTML to PDF blob
 export async function htmlToPdfBlobForQuotation(htmlContent: string): Promise<Blob> {
-    // Create a temporary div to render the HTML
-    const element = document.createElement("div");
-    element.innerHTML = htmlContent;
-    element.style.position = "absolute";
-    element.style.left = "-9999px";
-    element.style.top = "-9999px";
-    document.body.appendChild(element);
-  
-    try {
-      const { jsPDF } = await import("jspdf");
-      const { default: html2canvas } = await import("html2canvas");
-  
-      const canvas = await html2canvas(element, {
-        scale: 1,
+  // Create a temporary div to render the HTML
+  const element = document.createElement("div");
+  element.innerHTML = htmlContent;
+  element.style.position = "absolute";
+  element.style.left = "-9999px";
+  element.style.top = "-9999px";
+  document.body.appendChild(element);
+
+  try {
+    const { jsPDF } = await import("jspdf");
+    const { default: html2canvas } = await import("html2canvas");
+
+    // Render HTML to canvas with high quality
+    const canvas = await html2canvas(element, {
+      scale: 2, // Higher scale for better quality
+      useCORS: true,
+      logging: false,
+      backgroundColor: null, // Preserve transparency if any
+      windowWidth: 794, // A4 width in pixels at 96 DPI (210mm)
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 1.0); // Full quality JPEG
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+      compress: true, // Enable compression for smaller file size
+    });
+
+    // A4 dimensions in mm
+    const imgWidth = 210; // A4 width
+    const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
+
+    // Ensure the image fits within A4 height (297mm)
+    if (imgHeight > 297) {
+      // If the content exceeds A4 height, scale it down to fit
+      const scaleFactor = 297 / imgHeight;
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        0,
+        0,
+        imgWidth * scaleFactor,
+        imgHeight * scaleFactor,
+        undefined,
+        "FAST" // Faster compression
+      );
+    } else {
+      // Add image as-is if it fits
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        0,
+        0,
+        imgWidth,
+        imgHeight,
+        undefined,
+        "FAST"
+      );
+    }
+
+    // Generate initial blob
+    let pdfBlob = pdf.output("blob");
+
+    // Check file size and optimize if necessary (e.g., > 500KB)
+    if (pdfBlob.size > 500000) {
+      // Re-render with lower quality
+      const canvasLowQuality = await html2canvas(element, {
+        scale: 1.5, // Slightly lower scale
         useCORS: true,
         logging: false,
-        windowWidth: 1200, // Set fixed width to avoid layout issues
+        backgroundColor: null,
+        windowWidth: 794,
       });
-  
-      const imgData = canvas.toDataURL("image/png");
-  
-      // Initialize jsPDF
-      const pdf = new jsPDF({
+
+      const imgDataLowQuality = canvasLowQuality.toDataURL("image/jpeg", 0.8); // Reduced quality
+      const pdfLowQuality = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
+        compress: true,
       });
-  
-      // Calculate dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  
-      let heightLeft = imgHeight;
-      let position = 0;
-  
-      // Add first page
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-  
-      // Add additional pages if needed
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+
+      const imgHeightLowQuality = (canvasLowQuality.height * imgWidth) / canvasLowQuality.width;
+
+      if (imgHeightLowQuality > 297) {
+        const scaleFactor = 297 / imgHeightLowQuality;
+        pdfLowQuality.addImage(
+          imgDataLowQuality,
+          "JPEG",
+          0,
+          0,
+          imgWidth * scaleFactor,
+          imgHeightLowQuality * scaleFactor,
+          undefined,
+          "FAST"
+        );
+      } else {
+        pdfLowQuality.addImage(
+          imgDataLowQuality,
+          "JPEG",
+          0,
+          0,
+          imgWidth,
+          imgHeightLowQuality,
+          undefined,
+          "FAST"
+        );
       }
-  
-      // Get the PDF as blob
-      const pdfBlob = pdf.output("blob");
-      return pdfBlob;
-    } catch (error) {
-      console.error("Error generating PDF blob:", error);
-      throw new Error("Failed to generate PDF blob");
-    } finally {
-      // Clean up
-      document.body.removeChild(element);
+
+      pdfBlob = pdfLowQuality.output("blob");
     }
+
+    return pdfBlob;
+  } catch (error) {
+    console.error("Error generating PDF blob:", error);
+    throw new Error("Failed to generate PDF blob");
+  } finally {
+    // Clean up
+    document.body.removeChild(element);
   }
+}
   
   // Updated htmlToPdfBlob function with proper TypeScript support
  export async function htmlToPdfBlob(htmlContent: string): Promise<Blob> {

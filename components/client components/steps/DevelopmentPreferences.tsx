@@ -1,36 +1,51 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Plus, Minus, X, Info } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useProjectFormStore } from "@/lib/store/projectSteps"
+import type React from "react";
 
-// Update the DeveloperTypeSelector to show currency
+import { useState } from "react";
+
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Plus, Minus, X, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useProjectFormStore } from "@/lib/store/projectSteps";
+
 interface DeveloperTypeSelectorProps {
-  title: string
-  cost: string
-  tooltip: string
-  value: number
-  onChange: (value: number) => void
-  currency: "INR" | "USD" // Add currency prop
+  title: string;
+  cost: string;
+  tooltip: string;
+  value: number;
+  onChange: (value: number) => void;
+  currency: string;
 }
 
-function DeveloperTypeSelector({ title, cost, tooltip, value, onChange, currency }: DeveloperTypeSelectorProps) {
+// Update the DeveloperTypeSelector to show correct currency values
+function DeveloperTypeSelector({
+  title,
+  cost,
+  tooltip,
+  value,
+  onChange,
+  currency,
+}: DeveloperTypeSelectorProps) {
   // Get cost display based on currency
   const displayCost =
     currency === "INR"
       ? cost
       : cost.replace("₹", "$").replace(/\d+,\d+/g, (match) => {
-          // Convert the INR value to USD (4% of INR)
-          const inrValue = Number.parseInt(match.replace(",", ""))
-          const usdValue = Math.round(inrValue * 0.04)
-          return usdValue.toLocaleString()
-        })
+          // Convert the INR value to USD using the formula:
+          // (Base INR + 4% of Base INR) / 83
+          const inrValue = Number.parseInt(match.replace(",", ""));
+          const usdValue = Math.round((inrValue + 0.04 * inrValue) / 83);
+          return usdValue.toLocaleString();
+        });
 
   return (
     <div className="flex items-center justify-between p-3 border rounded-md">
@@ -67,48 +82,54 @@ function DeveloperTypeSelector({ title, cost, tooltip, value, onChange, currency
 
         <span className="w-5 text-center">{value}</span>
 
-        <Button type="button" size="icon" variant="outline" onClick={() => onChange(value + 1)}>
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          onClick={() => onChange(value + 1)}
+        >
           <Plus className="w-4 h-4" />
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
-// In the DevelopmentPreferences component, pass the currency prop
+// In the DevelopmentPreferences component, update the cost displays
 export function DevelopmentPreferences() {
-  const { formData, updateFormData, validationErrors } = useProjectFormStore()
-  const [newArea, setNewArea] = useState("")
+  const { formData, updateFormData, validationErrors } = useProjectFormStore();
+  const [newArea, setNewArea] = useState("");
 
   const addDevelopmentArea = () => {
     if (newArea.trim() && !formData.developmentAreas.includes(newArea.trim())) {
       updateFormData({
         developmentAreas: [...formData.developmentAreas, newArea.trim()],
-      })
-      setNewArea("")
+      });
+      setNewArea("");
     }
-  }
+  };
 
   const removeDevelopmentArea = (area: string) => {
-
     updateFormData({
-      developmentAreas: formData.developmentAreas.filter((a: string) => a !== area),
-    })
-  }
+      developmentAreas: formData.developmentAreas.filter((a) => a !== area),
+    });
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      e.preventDefault()
-      addDevelopmentArea()
+      e.preventDefault();
+      addDevelopmentArea();
     }
-  }
+  };
 
-  // Pass currency to each DeveloperTypeSelector
+  // Pass currency to each DeveloperTypeSelector with updated cost displays
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm text-muted-foreground">Step 2/4</p>
-        <h2 className="text-2xl font-bold text-foreground">Development Preferences and Team Size Selection</h2>
+        <h2 className="text-2xl font-bold text-foreground">
+          Development Preferences and Team Size Selection
+        </h2>
       </div>
 
       <div className="space-y-6">
@@ -127,7 +148,9 @@ export function DevelopmentPreferences() {
               value={newArea}
               onChange={(e) => setNewArea(e.target.value)}
               onKeyDown={handleKeyDown}
-              className={validationErrors.developmentAreas ? "border-destructive" : ""}
+              className={
+                validationErrors.developmentAreas ? "border-destructive" : ""
+              }
             />
             <Button type="button" onClick={addDevelopmentArea} size="sm">
               <Plus className="w-4 h-4" />
@@ -135,20 +158,22 @@ export function DevelopmentPreferences() {
           </div>
 
           {validationErrors.developmentAreas && (
-            <p className="text-sm text-destructive">{validationErrors.developmentAreas}</p>
+            <p className="text-sm text-destructive">
+              {validationErrors.developmentAreas}
+            </p>
           )}
 
           <div className="flex flex-wrap gap-2 mt-2">
-            {formData.developmentAreas.map((area: string) => (
+            {formData.developmentAreas.map((area) => (
               <Badge key={area} variant="secondary" className="px-3 py-1">
-              {area}
-              <button
-                type="button"
-                onClick={() => removeDevelopmentArea(area)}
-                className="ml-2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-3 h-3" />
-              </button>
+                {area}
+                <button
+                  type="button"
+                  onClick={() => removeDevelopmentArea(area)}
+                  className="ml-2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3 h-3" />
+                </button>
               </Badge>
             ))}
           </div>
@@ -160,7 +185,11 @@ export function DevelopmentPreferences() {
           <div className="space-y-3">
             <DeveloperTypeSelector
               title="Senior Developer"
-              cost={formData.currency === "INR" ? "(₹70,000-80,000)" : "($840-960)"}
+              cost={
+                formData.currency === "INR"
+                  ? "(₹70,000-80,000)"
+                  : "($940-1000)"
+              }
               tooltip="Senior developers are seasoned professionals in software development, providing technical leadership and expertise. They ensure high-quality code, troubleshoot complex issues, mentor junior developers, and contribute to project management."
               value={formData.seniorDevelopers}
               onChange={(value) => updateFormData({ seniorDevelopers: value })}
@@ -169,7 +198,9 @@ export function DevelopmentPreferences() {
 
             <DeveloperTypeSelector
               title="Junior Developer"
-              cost={formData.currency === "INR" ? "(₹20,000-40,000)" : "($240-480)"}
+              cost={
+                formData.currency === "INR" ? "(₹20,000-40,000)" : "($376-500)"
+              }
               tooltip="Junior developers are entry-level professionals learning and contributing to software projects. They write code, assist in testing, and benefit from mentorship to build skills. They adapt to team dynamics, participate in documentation, and focus on continuous learning."
               value={formData.juniorDevelopers}
               onChange={(value) => updateFormData({ juniorDevelopers: value })}
@@ -186,10 +217,13 @@ export function DevelopmentPreferences() {
             />
           </div>
 
-          {validationErrors.teamMembers && <p className="text-sm text-destructive">{validationErrors.teamMembers}</p>}
+          {validationErrors.teamMembers && (
+            <p className="text-sm text-destructive">
+              {validationErrors.teamMembers}
+            </p>
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 }
-
