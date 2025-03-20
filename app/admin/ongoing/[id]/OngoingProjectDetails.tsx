@@ -2,12 +2,12 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"; // Import Sonner toast
+import { toast } from "sonner";
 import { completeProjectAction } from "@/app/actions/admin-actions";
 import { ArrowLeft, FileText, Calendar, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns"; // Import isValid from date-fns
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { Project } from "@/lib/types";
@@ -41,7 +41,11 @@ export default function OngoingProjectDetailsClient({
 
   const isDeadlineSoon = () => {
     if (!project.deadline) return false;
+    
+    // Check if deadline is a valid date
     const deadline = new Date(project.deadline);
+    if (!isValid(deadline)) return false;
+    
     const today = new Date();
     const daysLeft = Math.ceil(
       (deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
@@ -71,6 +75,33 @@ export default function OngoingProjectDetailsClient({
   };
 
   const currencySymbol = currencySymbols[project?.currency || "₹"];
+
+  // Function to safely format dates
+  const safeFormatDate = (dateString: string | undefined | null, formatPattern: string = "MMMM dd, yyyy") => {
+    if (!dateString) return "Not set";
+    
+    const date = new Date(dateString);
+    return isValid(date) ? format(date, formatPattern) : "Invalid date";
+  };
+
+  // Calculate days left safely
+  const calculateDeadlineStatus = () => {
+    if (!project.deadline) return null;
+    
+    const deadline = new Date(project.deadline);
+    if (!isValid(deadline)) return "Invalid deadline";
+    
+    const today = new Date();
+    const daysLeft = Math.ceil(
+      (deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysLeft < 0) return `Overdue by ${Math.abs(daysLeft)} days`;
+    if (daysLeft === 0) return "Due today";
+    return `${daysLeft} days remaining`;
+  };
+  
+  const deadlineStatus = calculateDeadlineStatus();
 
   return (
     <motion.div
@@ -140,19 +171,21 @@ export default function OngoingProjectDetailsClient({
               {project.projectOverview}
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href={project.cloudinaryQuotationUrl || ""}>
+              <Link href={project.cloudinaryQuotationUrl || "#"}>
                 <Button
                   variant="outline"
                   className="flex items-center gap-2 w-full sm:w-auto"
+                  disabled={!project.cloudinaryQuotationUrl}
                 >
                   <FileText className="h-4 w-4" />
                   View Quotation PDF
                 </Button>
               </Link>
-              <Link href={project.cloudinaryDocumentationUrl || ""}>
+              <Link href={project.cloudinaryDocumentationUrl || "#"}>
                 <Button
                   variant="outline"
                   className="flex items-center gap-2 w-full sm:w-auto"
+                  disabled={!project.cloudinaryDocumentationUrl}
                 >
                   <FileText className="h-4 w-4" />
                   View Developer Guide PDF
@@ -177,11 +210,9 @@ export default function OngoingProjectDetailsClient({
                 />
                 <div>
                   <p className="font-medium">
-                    {project.deadline
-                      ? format(new Date(project.deadline), "MMMM dd, yyyy")
-                      : "Not set"}
+                    {safeFormatDate(project.deadline)}
                   </p>
-                  {project.deadline && (
+                  {project.deadline && deadlineStatus && (
                     <p
                       className={`text-xs ${
                         isDeadlineSoon()
@@ -189,19 +220,7 @@ export default function OngoingProjectDetailsClient({
                           : "text-muted-foreground"
                       }`}
                     >
-                      {(() => {
-                        const deadline = new Date(project.deadline);
-                        const today = new Date();
-                        const daysLeft = Math.ceil(
-                          (deadline.getTime() - today.getTime()) /
-                            (1000 * 60 * 60 * 24)
-                        );
-
-                        if (daysLeft < 0)
-                          return `Overdue by ${Math.abs(daysLeft)} days`;
-                        if (daysLeft === 0) return "Due today";
-                        return `${daysLeft} days remaining`;
-                      })()}
+                      {deadlineStatus}
                     </p>
                   )}
                 </div>
@@ -221,7 +240,7 @@ export default function OngoingProjectDetailsClient({
             <div>
               <p className="text-sm text-muted-foreground mb-1">Date Started</p>
               <p className="font-medium">
-                {format(new Date(project.startDate), "MMMM dd, yyyy")}
+                {safeFormatDate(project.startDate)}
               </p>
             </div>
           </CardContent>
