@@ -67,7 +67,7 @@ export async function generateDeveloperDocumentationFromPdf(
 
     // Step 4: Generate improved documentation using the paragraph text
     const improvedDocumentation =
-      await generateTasksFromDeveloperDocumentationFromGeminiAI(extractedTextParagraph);
+      await generateImprovedDocumentationFromGeminiAI(extractedTextParagraph);
 
     if (!improvedDocumentation) {
       return {
