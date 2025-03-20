@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
- // output: "export",
+  output: "export",
   devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,
@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
   experimental: {
     nodeMiddleware: true,
   },
-  
 };
 
 export default nextConfig;
